@@ -1,6 +1,6 @@
 # Sistema de Recomendação de Filmes 🎥
 
-# OBJETIVOS
+# OBJETIVOS 🎯
 
 <div align= "justify" >
   <p> Foi proposto pelo professor Michel Pires na disciplina de Algoritmo e Estrutura de Dados I, um trabalho no qual o objetivo é implementar um sistema de recomendação de filmes a partir de perfis de usuários e nas características dos itens. Para executar esse trabalho serão utilizadas métricas como: <b> Distância Euclidiana, Similaridade do Cosseno, Índice de Jaccard </b>. </p>
