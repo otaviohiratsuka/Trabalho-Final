@@ -15,8 +15,35 @@
 
   # INTRODUÇÃO
 
+  # LÓGICA
 
+  # CONCLUSÃO
 
+  
+
+  # COMPILAÇÃO E EXECUÇÃO
+</hr>
+A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o procedimento de compilação e execução. Para tanto, temos as seguintes diretrizes de execução:
+
+| Comando                |  Função                                                                                           |                     
+| -----------------------| ------------------------------------------------------------------------------------------------- |
+|  `make clean`          | Apaga a última compilação realizada contida na pasta build                                        |
+|  `make`              	 | Compila o código-fonte conforme as regras definidas no Makefile | 
+|  `make run`            | Executa a compilação do programa utilizando o gcc, e o resultado vai para a pasta build, além de em seguida executar o programa da pasta build após a realização da compilação |
+
+# AUTORES
+
+Esse trabalho foi realizado pelos seguintes integrantes.
+
+[Fabricio Quintilhiano;](https://github.com/F-Quintilhiano)
+
+[Jean Pedro Oliveira;](https://github.com/Jeanaraga)
+
+[Lorena Ávila;](https://github.com/Lorenaavila20)
+
+[Otávio Hiratsuka;](https://github.com/otaviohiratsuka)
+
+Alunos do curso de Engenharia da Computação no [CEFET-MG](https://www.cefetmg.br)
 
 
 
