@@ -2,114 +2,131 @@
 #include <fstream>
 #include <iostream>
 #include <cstdio>
-#include <cstring>
 
 using namespace std;
 
-vector<Avaliacao> lerAvaliacoes(const string& nomeArquivo, int maxLinhas,
-                                unordered_map<int, int>& contagemUsuarios,
-                                unordered_map<int, int>& contagemFilmes) {
-    ifstream arquivo(nomeArquivo);
-    vector<Avaliacao> avaliacoes;
-    unordered_set<Avaliacao, AvaliacaoHash> avaliacoesUnicas;
-
+vector<Avaliacao> lerAvaliacoes(
+    const string& caminhoCsv,
+    int maxLinhas,
+    unordered_map<int,int>& contagemUsuarios,
+    unordered_map<int,int>& contagemFilmes
+) {
+    ifstream arquivo(caminhoCsv);
     if (!arquivo.is_open()) {
-        cerr << "Erro ao abrir arquivo: " << nomeArquivo << endl;
+        cerr << "Erro ao abrir arquivo: " << caminhoCsv << "\n";
         return {};
     }
 
-    // Otimizações: reserva, carga e reorganização
+    vector<Avaliacao> avaliacoes;
+    unordered_set<Avaliacao,AvaliacaoHash> unicas;
+
+    // Reservar espaço para otimizar alocação
     avaliacoes.reserve(maxLinhas);
-    avaliacoesUnicas.reserve(maxLinhas);
-    avaliacoesUnicas.max_load_factor(1.0);
-    
-    contagemUsuarios.reserve(maxLinhas / 20);
-    contagemUsuarios.rehash(maxLinhas / 20);
-    contagemUsuarios.max_load_factor(1.0);
+    unicas.reserve(maxLinhas);
+    unicas.max_load_factor(1.0f);
+    contagemUsuarios.reserve(maxLinhas/20);
+    contagemUsuarios.max_load_factor(1.0f);
+    contagemFilmes.reserve(maxLinhas/50);
+    contagemFilmes.max_load_factor(1.0f);
 
-    contagemFilmes.reserve(maxLinhas / 50);
-    contagemFilmes.rehash(maxLinhas / 50);
-    contagemFilmes.max_load_factor(1.0);
+    // Buffer fixo para leitura rápida de linhas
+    static char buffer[256];
+    arquivo.getline(buffer, sizeof(buffer)); // pula cabeçalho
 
-    char buffer[128];
-    arquivo.getline(buffer, sizeof(buffer)); // Pula o cabeçalho
+    int lidos = 0;
+    while (lidos < maxLinhas && arquivo.getline(buffer, sizeof(buffer))) {
+        int usuarioId, filmeId;
+        float nota;
 
-    int linhasLidas = 0;
-    while (linhasLidas < maxLinhas && arquivo.getline(buffer, sizeof(buffer))) {
-        int userId, movieId;
-        float rating;
+        // sscanf: parsing rápido de CSV simples
+        if (sscanf(buffer, "%d,%d,%f", &usuarioId, &filmeId, &nota) != 3)
+            continue;
 
-        if (sscanf(buffer, "%d,%d,%f", &userId, &movieId, &rating) != 3) continue;
+        // Descartar notas fora do intervalo válido
+        if (nota < 0.5f || nota > 5.0f)
+            continue;
 
-        Avaliacao a{userId, movieId, rating};
-        if (avaliacoesUnicas.insert(a).second) {
+        Avaliacao a{usuarioId, filmeId, nota};
+        // Insere se for avaliação única (sem duplicados)
+        if (unicas.insert(a).second) {
             avaliacoes.push_back(a);
-            contagemUsuarios[userId]++;
-            contagemFilmes[movieId]++;
+            contagemUsuarios[usuarioId]++;
+            contagemFilmes[filmeId]++;
         }
-
-        linhasLidas++;
+        lidos++;
     }
 
     arquivo.close();
     return avaliacoes;
 }
 
-unordered_set<int> filtrarUsuariosOuFilmes(const unordered_map<int, int>& contagem, int minimo) {
+unordered_set<int> filtrarPorContagemMinima(
+    const unordered_map<int,int>& contagens,
+    int minCount
+) {
     unordered_set<int> validos;
-    validos.reserve(contagem.size());
-
-    for (auto& par : contagem) {
-        if (par.second >= minimo)
+    validos.reserve(contagens.size());
+    for (const auto& par : contagens) {
+        if (par.second >= minCount)
             validos.insert(par.first);
     }
     return validos;
 }
 
-unordered_map<int, vector<pair<int, float>>> agruparAvaliacoesPorUsuario(
+unordered_map<int, vector<pair<int,float>>> agruparAvaliacoesPorUsuario(
     const vector<Avaliacao>& avaliacoes,
     const unordered_set<int>& usuariosValidos,
-    const unordered_set<int>& filmesValidos) {
-
-    unordered_map<int, vector<pair<int, float>>> agrupado;
+    const unordered_set<int>& filmesValidos
+) {
+    unordered_map<int, vector<pair<int,float>>> agrupado;
+    agrupado.reserve(usuariosValidos.size());
     for (const auto& a : avaliacoes) {
-        if (usuariosValidos.find(a.userId) != usuariosValidos.end() &&
-            filmesValidos.find(a.movieId) != filmesValidos.end()) {
-            agrupado[a.userId].emplace_back(a.movieId, a.rating);
+        if (usuariosValidos.find(a.usuarioId) != usuariosValidos.end() &&
+            filmesValidos.find(a.filmeId) != filmesValidos.end()) {
+            agrupado[a.usuarioId].emplace_back(a.filmeId, a.nota);
         }
     }
     return agrupado;
 }
 
-void escreverArquivoDeSaida(const unordered_map<int, vector<pair<int, float>>>& dados) {
-    ofstream out("datasets/input.dat");
-    if (!out.is_open()) {
-        cerr << "Erro ao criar datasets/input.dat" << endl;
+void escreverInputDat(
+    const string& caminhoSaida,
+    const unordered_map<int, vector<pair<int,float>>>& dadosAgrupados
+) {
+    ofstream saida(caminhoSaida);
+    if (!saida.is_open()) {
+        cerr << "Erro ao criar arquivo: " << caminhoSaida << "\n";
         return;
     }
-
-    for (const auto& par : dados) {
-        out << par.first;
-        for (const auto& itemNota : par.second) {
-            out << " " << itemNota.first << ":" << itemNota.second;
-        }
-        out << "\n";
+    for (const auto& par : dadosAgrupados) {
+        saida << par.first;
+        for (const auto& item : par.second)
+            saida << " " << item.first << ":" << item.second;
+        saida << "\n";
     }
-
-    out.close();
+    saida.close();
 }
 
-void preProcessar(const string& nomeArquivo, int maxLinhas) {
-    unordered_map<int, int> contagemUsuarios, contagemFilmes;
+void preprocessar(
+    const string& caminhoCsvRatings,
+    const string& caminhoOutputInputDat,
+    int maxLinhas
+) {
+    unordered_map<int,int> contUsuarios;
+    unordered_map<int,int> contFilmes;
 
-    auto avaliacoes = lerAvaliacoes(nomeArquivo, maxLinhas, contagemUsuarios, contagemFilmes);
+    // Passo 1: ler e filtrar avaliações
+    auto avaliacoes = lerAvaliacoes(caminhoCsvRatings, maxLinhas, contUsuarios, contFilmes);
+    // Passo 2: filtrar usuários e filmes pelos limites mínimos
+    auto usuariosValidos = filtrarPorContagemMinima(contUsuarios, 50);
+    auto filmesValidos = filtrarPorContagemMinima(contFilmes, 50);
+    
+    // Passo 3: agrupar avaliações por usuário
+    auto dadosAgrupados = agruparAvaliacoesPorUsuario(avaliacoes, usuariosValidos, filmesValidos);
+    
+    // Passo 4: escrever arquivo input.dat
+    escreverInputDat(caminhoOutputInputDat, dadosAgrupados);
 
-    auto usuariosValidos = filtrarUsuariosOuFilmes(contagemUsuarios, 50);
-    auto filmesValidos = filtrarUsuariosOuFilmes(contagemFilmes, 50);
-
-    auto agrupado = agruparAvaliacoesPorUsuario(avaliacoes, usuariosValidos, filmesValidos);
-
-    escreverArquivoDeSaida(agrupado);
-
-    cout << "Arquivo datasets/input.dat gerado com sucesso com limite de " << maxLinhas << " linhas lidas!\n";
+    cout << "Pré-processamento concluído: " << dadosAgrupados.size() << " usuarios escritos em "
+         << caminhoOutputInputDat << "\n";
 }

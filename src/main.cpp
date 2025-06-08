@@ -7,9 +7,13 @@ using namespace std;
 using namespace std::chrono;
 int main(){
     auto start = high_resolution_clock::now();
-    preProcessar("datasets/ratings.csv", 2500000);
+    preprocessar(
+        "datasets/ratings.csv",
+        "datasets/input.dat",
+        2500000
+    );
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(end - start);
-    cout << "Tempo de processamento: " << duration.count() << " miliseconds" << endl;
+    cout << "Tempo de processamento: " << duration.count() << " ms" << endl;
 
 }
