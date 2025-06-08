@@ -1,6 +1,7 @@
 # Compilador e flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra
+CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto
+
 
 # Diretórios
 SRC_DIR = src

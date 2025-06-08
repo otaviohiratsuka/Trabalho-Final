@@ -1,7 +1,8 @@
 #include "preprocess.hpp"
 #include <fstream>
-#include <sstream>
 #include <iostream>
+#include <cstdio>
+#include <cstring>
 
 using namespace std;
 
@@ -17,21 +18,28 @@ vector<Avaliacao> lerAvaliacoes(const string& nomeArquivo, int maxLinhas,
         return {};
     }
 
-    string linha;
-    getline(arquivo, linha); // pular cabeçalho
+    // Otimizações: reserva, carga e reorganização
+    avaliacoes.reserve(maxLinhas);
+    avaliacoesUnicas.reserve(maxLinhas);
+    avaliacoesUnicas.max_load_factor(1.0);
+    
+    contagemUsuarios.reserve(maxLinhas / 20);
+    contagemUsuarios.rehash(maxLinhas / 20);
+    contagemUsuarios.max_load_factor(1.0);
+
+    contagemFilmes.reserve(maxLinhas / 50);
+    contagemFilmes.rehash(maxLinhas / 50);
+    contagemFilmes.max_load_factor(1.0);
+
+    char buffer[128];
+    arquivo.getline(buffer, sizeof(buffer)); // Pula o cabeçalho
 
     int linhasLidas = 0;
-    while (linhasLidas < maxLinhas && getline(arquivo, linha)) {
-        stringstream ss(linha);
-        string userStr, movieStr, ratingStr;
+    while (linhasLidas < maxLinhas && arquivo.getline(buffer, sizeof(buffer))) {
+        int userId, movieId;
+        float rating;
 
-        if (!getline(ss, userStr, ',')) continue;
-        if (!getline(ss, movieStr, ',')) continue;
-        if (!getline(ss, ratingStr, ',')) continue;
-
-        int userId = stoi(userStr);
-        int movieId = stoi(movieStr);
-        float rating = stof(ratingStr);
+        if (sscanf(buffer, "%d,%d,%f", &userId, &movieId, &rating) != 3) continue;
 
         Avaliacao a{userId, movieId, rating};
         if (avaliacoesUnicas.insert(a).second) {
@@ -49,8 +57,11 @@ vector<Avaliacao> lerAvaliacoes(const string& nomeArquivo, int maxLinhas,
 
 unordered_set<int> filtrarUsuariosOuFilmes(const unordered_map<int, int>& contagem, int minimo) {
     unordered_set<int> validos;
+    validos.reserve(contagem.size());
+
     for (auto& par : contagem) {
-        if (par.second >= minimo) validos.insert(par.first);
+        if (par.second >= minimo)
+            validos.insert(par.first);
     }
     return validos;
 }
@@ -62,7 +73,8 @@ unordered_map<int, vector<pair<int, float>>> agruparAvaliacoesPorUsuario(
 
     unordered_map<int, vector<pair<int, float>>> agrupado;
     for (const auto& a : avaliacoes) {
-        if (usuariosValidos.count(a.userId) && filmesValidos.count(a.movieId)) {
+        if (usuariosValidos.find(a.userId) != usuariosValidos.end() &&
+            filmesValidos.find(a.movieId) != filmesValidos.end()) {
             agrupado[a.userId].emplace_back(a.movieId, a.rating);
         }
     }
