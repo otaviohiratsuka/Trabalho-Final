@@ -1,15 +1,15 @@
 # Compilador e flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto
-
+CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto -Iinclude
 
 # Diretórios
 SRC_DIR = src
 BUILD_DIR = build
 BIN = main
 
-# Arquivos fonte e objetos
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+# Busca recursiva por .cpp dentro de src/
+SRCS = $(shell find $(SRC_DIR) -name "*.cpp")
+# Gera os .o equivalentes no build/ com mesmo nome relativo
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Regra padrão
@@ -19,9 +19,9 @@ all: $(BIN)
 $(BIN): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 
-# Compilação dos .cpp para .o no build/
+# Compilação com criação de subpastas em build/
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Rodar o programa
