@@ -1,4 +1,5 @@
 #include "preprocess/preprocess.hpp"
+#include "recomendar/recomendar.hpp"
 #include "Jaccard.hpp"
 #include <chrono>
 #include <fstream> 
@@ -10,6 +11,9 @@ using namespace std;
 using namespace std::chrono;
 
 int main(){
+    // Definindo o algoritmo de recomendacao global
+    algoritmoGlobal = recomendarJaccard;
+
     auto start = high_resolution_clock::now();
     preprocessar(
         "datasets/ratings.csv",
@@ -20,7 +24,8 @@ int main(){
     auto duration = duration_cast<milliseconds>(mid - start);
     cout << "Tempo de preprocessamento: " << duration.count() << " ms" << endl;
     
-    recomendarJaccard(
+    recomendar(
+        algoritmoGlobal,
         "datasets/input.dat",
         "datasets/explore.dat",
         "datasets/output.dat"
