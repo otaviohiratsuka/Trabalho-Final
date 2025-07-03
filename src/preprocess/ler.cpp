@@ -1,88 +1,116 @@
 #include "preprocess/ler.hpp"
-#include <fstream>
-#include <iostream>
-#include <cstdio>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <algorithm>
-#include <cstdlib>
-#include <tuple>
-#include <limits>
+#include <execution>
+#include <iostream>
 
 using namespace std;
 
-// COM LIMITES DE LINHAS
+// Parsing rápido de inteiros (substitui strtol)
+inline int fast_atoi(const char*& ptr) {
+    int val = 0;
+    while (*ptr >= '0' && *ptr <= '9') {
+        val = val * 10 + (*ptr++ - '0');
+    }
+    return val;
+}
+
+// Parsing rápido de floats (substitui strtof)
+inline float fast_atof(const char*& ptr) {
+    float val = 0.0f;
+    float frac = 1.0f;
+    while (*ptr >= '0' && *ptr <= '9') {
+        val = val * 10 + (*ptr++ - '0');
+    }
+    if (*ptr == '.') {
+        ptr++;
+        while (*ptr >= '0' && *ptr <= '9') {
+            frac *= 0.1f;
+            val += (*ptr++ - '0') * frac;
+        }
+    }
+    return val;
+}
 
 vector<Avaliacao> lerAvaliacoes(
     const string &caminhoCsv,
     unordered_map<int, int> &contagemUsuarios,
     unordered_map<int, int> &contagemFilmes,
-    int maxLinhas)
-{
-    ifstream arquivo(caminhoCsv);
-    if (!arquivo.is_open())
-    {
+    int maxLinhas
+) {
+    // Abre o arquivo com mmap
+    int fd = open(caminhoCsv.c_str(), O_RDONLY);
+    if (fd == -1) {
         cerr << "Erro ao abrir arquivo: " << caminhoCsv << "\n";
         return {};
     }
+    size_t size = lseek(fd, 0, SEEK_END);
+    const char* data = (const char*)mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd);
 
     vector<Avaliacao> avaliacoes;
-    if (maxLinhas > 0)
-        avaliacoes.reserve(maxLinhas);
+    if (maxLinhas > 0) avaliacoes.reserve(maxLinhas);
 
-    // pré‑aloca os mapas antes de ler
+    // Pré-aloca mapas (estimativa)
     if (maxLinhas > 0) {
         contagemUsuarios.reserve(maxLinhas / 20);
-        contagemFilmes  .reserve(maxLinhas / 20);
+        contagemFilmes.reserve(maxLinhas / 20);
     }
 
-    // pula o cabeçalho de forma eficiente
-    arquivo.ignore(numeric_limits<streamsize>::max(), '\n');
+    const char* ptr = data;
+    const char* end = data + size;
 
+    // Pula cabeçalho
+    while (ptr < end && *ptr != '\n') ptr++;
+    if (ptr < end) ptr++;
+
+    // Processamento linha a linha
     int lidos = 0;
-    char buffer[256];    // buffer no stack, thread‑safe
+    while (ptr < end && (maxLinhas < 0 || lidos < maxLinhas)) {
+        const char* linha_start = ptr;
+        while (ptr < end && *ptr != '\n') ptr++;
+        if (ptr >= end) break;
 
-    while ((maxLinhas < 0 || lidos < maxLinhas) &&
-           arquivo.getline(buffer, sizeof(buffer)))
-    {
-        char *p = buffer;
+        // Parsing manual (rápido)
+        const char* p = linha_start;
+        int usuarioId = fast_atoi(p);
+        if (*p != ',') { ptr++; continue; }
+        p++;
+        int filmeId = fast_atoi(p);
+        if (*p != ',') { ptr++; continue; }
+        p++;
+        float nota = fast_atof(p);
 
-        // parsing manual em vez de sscanf
-        int usuarioId = strtol(p, &p, 10);
-        if (*p != ',') continue;
-        ++p;
-        int filmeId = strtol(p, &p, 10);
-        if (*p != ',') continue;
-        ++p;
-        float nota = strtof(p, nullptr);
-
-        if (nota < 0.5f || nota > 5.0f)
-            continue;
-
-        // armazena com emplace_back
-        avaliacoes.emplace_back(Avaliacao{usuarioId, filmeId, nota});
-        ++lidos;
+        // Valida nota
+        if (nota >= 0.5f && nota <= 5.0f) {
+            avaliacoes.emplace_back(Avaliacao{usuarioId, filmeId, nota});
+            lidos++;
+        }
+        ptr++; // Pula '\n'
     }
 
-    arquivo.close();
+    // Ordenação
+    // Usa sort com execução paralela
+    sort(execution::par_unseq, avaliacoes.begin(), avaliacoes.end(), [](auto& a, auto& b) {
+        return tie(a.usuarioId, a.filmeId) < tie(b.usuarioId, b.filmeId);
+    });
 
-    // Sort + unique 
-    sort(avaliacoes.begin(), avaliacoes.end(),
-         [](const Avaliacao &a, const Avaliacao &b) {
-             return tie(a.usuarioId, a.filmeId) < tie(b.usuarioId, b.filmeId);
-         });
+    // Remoção de duplicatas
+    // Usa unique com execução paralela para remover duplicatas
+    auto new_end = unique(execution::par_unseq, avaliacoes.begin(), avaliacoes.end(), [](auto& a, auto& b) {
+        return a.usuarioId == b.usuarioId && a.filmeId == b.filmeId;
+    });
+    avaliacoes.erase(new_end, avaliacoes.end());
 
-    avaliacoes.erase(
-        unique(avaliacoes.begin(), avaliacoes.end(),
-               [](const Avaliacao &a, const Avaliacao &b) {
-                   return a.usuarioId == b.usuarioId
-                       && a.filmeId == b.filmeId;
-               }),
-        avaliacoes.end());
 
-    // atualiza contagens com dados únicos
-    for (const auto &a : avaliacoes) {
+    // Contagem de usuários e filmes
+    for (const auto& a : avaliacoes) {
         contagemUsuarios[a.usuarioId]++;
-        contagemFilmes [a.filmeId]++;
+        contagemFilmes[a.filmeId]++;
     }
 
+    munmap((void*)data, size);
     return avaliacoes;
 }
