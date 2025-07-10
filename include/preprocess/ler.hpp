@@ -11,3 +11,6 @@ std::vector<Avaliacao> lerAvaliacoes(
     std::unordered_map<int,int>& contagemFilmes,
     int maxLinhas = -1
 );
+
+// Função auxiliar para remover duplicatas de avaliações
+void removerDuplicatas(std::vector<Avaliacao>& avaliacoes);

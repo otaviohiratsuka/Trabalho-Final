@@ -91,18 +91,8 @@ vector<Avaliacao> lerAvaliacoes(
         ptr++; // Pula '\n'
     }
 
-    // Ordenação
-    // Usa sort com execução paralela
-    sort(execution::par_unseq, avaliacoes.begin(), avaliacoes.end(), [](auto& a, auto& b) {
-        return tie(a.usuarioId, a.filmeId) < tie(b.usuarioId, b.filmeId);
-    });
-
-    // Remoção de duplicatas
-    // Usa unique com execução paralela para remover duplicatas
-    auto new_end = unique(execution::par_unseq, avaliacoes.begin(), avaliacoes.end(), [](auto& a, auto& b) {
-        return a.usuarioId == b.usuarioId && a.filmeId == b.filmeId;
-    });
-    avaliacoes.erase(new_end, avaliacoes.end());
+    // remover duplicatas
+    removerDuplicatas(avaliacoes);
 
 
     // Contagem de usuários e filmes
@@ -113,4 +103,22 @@ vector<Avaliacao> lerAvaliacoes(
 
     munmap((void*)data, size);
     return avaliacoes;
+}
+
+// funcao auxiliar remover duplicatas
+void removerDuplicatas(std::vector<Avaliacao>& avaliacoes) {
+    // Ordena as avaliações por (usuarioId, filmeId)
+    std::sort(std::execution::par_unseq, avaliacoes.begin(), avaliacoes.end(),
+              [](const Avaliacao& a, const Avaliacao& b) {
+                  return std::tie(a.usuarioId, a.filmeId) < std::tie(b.usuarioId, b.filmeId);
+              });
+
+    // Remove elementos consecutivos iguais
+    auto novoFim = std::unique(std::execution::par_unseq, avaliacoes.begin(), avaliacoes.end(),
+              [](const Avaliacao& a, const Avaliacao& b) {
+                  return a.usuarioId == b.usuarioId && a.filmeId == b.filmeId;
+              });
+
+    // Apaga duplicatas
+    avaliacoes.erase(novoFim, avaliacoes.end());
 }
