@@ -1,4 +1,7 @@
 # Sistema de Recomendação de Filmes 🎥
+<div align="center">
+    <img src="./img/recF.png">
+</div>
 
 ## INTRODUÇÃO
 
