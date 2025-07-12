@@ -251,7 +251,7 @@ A função lê cada linha e extrai o `uid` e os filmes assistidos (`filmeId: rat
 
 **b) Função Jaccard**
    
-   Para implementar a similaridade de jaccard usamos a função [double jaccard](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L60-L89). Essa função calcula a similaridade de jaccard entre dois usuários com base nos filmes que assistiram. Dois vetores ordenados de `int`, representando filmes assistidos por dois usuários são as entradas e o valor `double` entre 0 e 1, indicando a similaridade Jaccard é a saída.
+   Para implementar a similaridade de jaccard usamos a função [double jaccard](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L60-L89](https://github.com/otaviohiratsuka/Trabalho-Final/blob/a5f28f1879b5d8163d932deb9de3c34e6646a2d8/src/jaccard/CalculadorSimilaridade.cpp#L4)). Essa função calcula a similaridade de jaccard entre dois usuários com base nos filmes que assistiram. Dois vetores ordenados de `int`, representando filmes assistidos por dois usuários são as entradas e o valor `double` entre 0 e 1, indicando a similaridade Jaccard é a saída.
    As duas variáveis (`i`, `j`) são usadas para percorrer os vetores ordenados. Após isso, é contado quantos filmes estão em comum (**intersecção**). E calcula a união com: $uniao = |a| + |b| - interssec$
 
    Retornando:
@@ -271,7 +271,7 @@ Nota-se que existe um cálculo eficiente da interseção com ponteiros duplos. I
 
 **c) Processar Chunk**
 
-Para processar um subconjunto (chunk) dos exploradores, calcular similaridade, gerar recomendação e salvar os resultados em arquivo temporário, foi criado a função [processarChunk](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L90-L188). O `exploradoresVec` é o vetor de pares `<uid, filmes>` dos usuários a serem recomendados. `PerfisVec` são todos os usuários com seus filmes. `startIdx`, `endIdx` é o intervalo de índices para esse processo. `tempFileName` é o nome do arquivo onde o processo salvará o resultado.
+Para processar um subconjunto (chunk) dos exploradores, calcular similaridade, gerar recomendação e salvar os resultados em arquivo temporário, foi criado a função [processarChunk](https://github.com/otaviohiratsuka/Trabalho-Final/blob/a5f28f1879b5d8163d932deb9de3c34e6646a2d8/src/jaccard/ProcessadorRecomendacoes.cpp#L9). O `exploradoresVec` é o vetor de pares `<uid, filmes>` dos usuários a serem recomendados. `PerfisVec` são todos os usuários com seus filmes. `startIdx`, `endIdx` é o intervalo de índices para esse processo. `tempFileName` é o nome do arquivo onde o processo salvará o resultado.
 Na saída o `tempFileName` escreve as recomendações no formato:
 ```
 UID filme1 filme2 filme3 ...
@@ -298,7 +298,7 @@ Nessa mesma função também usamos a filtragem pro similaridade mínima (`if (s
 
 **d) Recomendação usando Jaccard**
 
-No [recomendarJaccard()](https://github.com/otaviohiratsuka/Trabalho-Final/blob/bc3c98c0894718d50e1f9653d5e06b386fa5c1a6/src/jaccard/Jaccard.cpp#L9-L28), o objetivo é controlar a leitura dos arquivos, paralelizar o processo usando `fork()`, e combinar os resultados em um arquivo final.
+No [recomendarJaccard()](https://github.com/otaviohiratsuka/Trabalho-Final/blob/bc3c98c0894718d50e1f9653d5e06b386fa5c1a6/src/jaccard/Jaccard.cpp#L9-L28](https://github.com/otaviohiratsuka/Trabalho-Final/blob/a5f28f1879b5d8163d932deb9de3c34e6646a2d8/src/jaccard/Jaccard.cpp#L9)), o objetivo é controlar a leitura dos arquivos, paralelizar o processo usando `fork()`, e combinar os resultados em um arquivo final.
 
 * `caminhoInput`: perfis base.
 * `caminhoExplore`: perfis dos exploradores.
