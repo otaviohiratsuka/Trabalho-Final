@@ -308,6 +308,7 @@ Os resultados médios obtidos são os seguintes:
 * * **Dataset:** MovieLens 25M (utilizando um subconjunto de 102.492 usuários para os testes de performance)
 
 </p>
+
 ## COMPILAÇÃO E EXECUÇÃO
 </hr>
 A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o procedimento de compilação e execução. Para tanto, temos as seguintes diretrizes de execução:
