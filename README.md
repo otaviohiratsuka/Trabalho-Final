@@ -88,7 +88,148 @@ Nesta seção, apresentamos a metodologia adotada no desenvolvimento do projeto,
     <img src="./img/Fluxograma.png" width="400">
 </div>
 
+### Jaccard
+O índice de Jaccard mede a similaridade entre dois conjuntos. A fórmula é:
 
+$$
+J(A,B) = \frac{|A \cap B|}{|A \cup B|}
+$$
+
+Ou seja:
+* **Numerador:** número de elementos em comum.
+* **Denominador:** número total de elementos únicos nos dois conjuntos.
+
+Exemplo:
+
+```
+A = {1, 2, 3}
+B = {2, 3, 4}
+
+A ∩ B = {2, 3} → tamanho = 2  
+A ∪ B = {1, 2, 3, 4} → tamanho = 4
+
+J(A, B) = 2 / 4 = 0.5
+```
+
+
+1. Leitura de Perfis
+   
+    Como o começo do processo do algoritmo foi feita uma função [lerPerfis(const string& caminho)](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L21-L58). Que tem o objetivo de ler um arquivo de perfis de usuários, onde cada linha representa os filmes que um usuários assistiu, e transformar em um `unordered_map<int, vector<int>>`.
+   * Entrada -> `caminho`: nome do arquivo (ex: ratings.csv).
+   * Saída -> Um `Perfil`, que é um alias para:
+     ```
+        using Perfil = unordered_map<int, vector<int>>;
+     ```
+**O que a função faz?**
+
+A função lê cada linha e extrai o `uid` e os filmes assistidos (`filmeId: rating` -> pega só o `filmeId`). Depois ordena e remove duplicatas de filmes e salva no `unordered_map`
+
+```
+    while (getline(arq, linha)){
+        if (linha.empty()) continue;
+        
+        stringstream ss(linha);
+        int uid;
+        ss >> uid;
+
+
+        string par;
+        vector<int> filmes;
+        while(ss >> par){
+            size_t pos = par.find(":");
+            if (pos != string::npos){
+                try {
+                    int filmeId = stoi(par.substr(0, pos));
+                    filmes.push_back(filmeId);
+                } catch (const exception&) {
+                    continue;
+                }
+            }
+        }
+        
+        sort(filmes.begin(), filmes.end());
+        filmes.erase(unique(filmes.begin(), filmes.end()), filmes.end());
+        
+        perfis[uid] = move(filmes);
+    }
+```
+
+2. Função Jaccard
+   
+   Para implementar a similaridade de jaccard usamos a função [double jaccard](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L60-L89). Essa função calcula a similaridade de jaccard entre dois usuários com base nos filmes que assistiram. Dois vetores ordenados de `int`, representando filmes assistidos por dois usuários são as entradas e o valor `double` entre 0 e 1, indicando a similaridade Jaccard é a saída.
+   As duas variáveis (`i`, `j`) são usadas para percorrer os vetores ordenados. Após isso, é contado quantos filmes estão em comum (**intersecção**). E calcula a união com: $uniao = |a| + |b| - interssec$
+
+   Retornando:
+
+$$
+   J(a,b) = \frac{intersec}{uniao}
+$$
+
+```
+while (i < a.size() && j < b.size()) {
+    if (a[i] == b[j]) intersec++;
+    else if (a[i] < b[j]) i++;
+    else j++;
+}
+```
+
+3. Processar Chunk
+
+Para processar um subconjunto (chunk) dos exploradores, calcular similaridade, gerar recomendação e salvar os resultados em arquivo temporário, foi criado a função [processarChunk](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L90-L188). O `exploradoresVec` é o vetor de pares `<uid, filmes>` dos usuários a serem recomendados. `PerfisVec` são todos os usuários com seus filmes. `startIdx`, `endIdx` é o intervalo de índices para esse processo. `tempFileName` é o nome do arquivo onde o processo salvará o resultado.
+Na saída o `tempFileName` escreve as recomendações no formato:
+```
+UID filme1 filme2 filme3 ...
+```
+A função para cada explorador, compara com todos os perfis, calcula jaccard e mantém os top 10 mais semelhantes (`topK`).
+
+```
+    for (int idx = startIdx; idx < endIdx; ++idx) {
+        const auto& [uidExplorador, filmesExplorador] = exploradoresVec[idx];
+        
+        priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> topK;
+        
+        for(const auto& [uid, filmes] : perfisVec){
+            if (uid == uidExplorador) continue;
+            
+            double sim = jaccard(filmesExplorador, filmes);
+```
+
+Agora, para os top-10 semelhantes é usado: `filmeScore[filme] += similaridade;`, que recomenda os filmes que o explorado **ainda não viu** e o peso do filme depende da similaridade com o vizinho. Depois a função pega os top-10 filmes com maior score  `priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> topFilmes;`, usa o heap para manter os 10 melhores e salva recomendações no arquivo temporário.
+
+4. Recomendação usando Jaccard
+
+No [recomendarJaccard()](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L189-L266), o objetivo é controlar a leitura dos arquivos, paralelizar o processo usando `fork()`, e combinar os resultados em um arquivo final.
+
+* `caminhoInput`: perfis base.
+* `caminhoExplore`: perfis dos exploradores.
+* `caminhoOutput`: arquivo de saída final com as recomendações.
+* E cria um arquivo com recomendações de filmes por usuário.
+
+Na leitura, carrega os dois arquivos em unordered_map.
+```
+auto perfis = lerPerfis(caminhoInput);
+auto exploradores = lerPerfis(caminhoExplore);
+```
+E converte para `vector<pair<>>`: `for (const auto& [uid, filmes] : exploradores) exploradoresVec.emplace_back(uid, filmes);
+`, assim facilita a indexação e divisão de dados.
+
+Para a melhor otimização do código, usamos o paralelismo com o `fork()`, que divide o vetor de exploradores em `P` partes (onde `P = núcleos da CPU`) e com isso cada processo executa `processaChunk(...)` com seu pedaço. E os resultados são salvos em arquivos temporários separados.
+```
+pid_t pid = fork();
+if (pid == 0) {
+    processarChunk(...);
+    exit(0);
+}
+```
+
+Finalizando, para unir os resultados a função junta todos os arquivos temporários no arquivo de saída final.
+
+```
+for (const string& tempFileName : arquivosTemp) {
+    ifstream tempFile(tempFileName);
+    while (getline(tempFile, linha)) out << linha << "\n";
+}
+```
 
 
 ## ANÁLISES E CONCLUSÕES
