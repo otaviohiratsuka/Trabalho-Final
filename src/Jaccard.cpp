@@ -8,8 +8,11 @@
 #include <algorithm>
 #include <iomanip>
 #include <queue>
-#include <omp.h>
-#include <mutex>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <unistd.h>
+#include <cstring>
+#include <cerrno>
 
 using namespace std;
 
@@ -45,7 +48,6 @@ Perfil lerPerfis(const string& caminho){
             }
         }
         
-        // Ordenar e remover duplicatas
         sort(filmes.begin(), filmes.end());
         filmes.erase(unique(filmes.begin(), filmes.end()), filmes.end());
         
@@ -62,7 +64,6 @@ double jaccard(const vector<int>& a, const vector<int>& b){
     size_t intersec = 0;
     size_t i = 0, j = 0;
     
-    // Algoritmo de merge otimizado para contar interseção
     while (i < a.size() && j < b.size()) {
         if (a[i] == b[j]) {
             intersec++;
@@ -79,61 +80,34 @@ double jaccard(const vector<int>& a, const vector<int>& b){
     return static_cast<double>(intersec) / uniao;
 }
 
-void recomendarJaccard(
-    const string& caminhoInput,
-    const string& caminhoExplore,
-    const string& caminhoOutput
-) {
-    cout << "Carregando perfis de input..." << endl;
-    auto perfis = lerPerfis(caminhoInput);
-    cout << "Perfis carregados: " << perfis.size() << endl;
+struct ProcessData {
+    int startIdx;
+    int endIdx;
+    int totalExploradores;
+    char tempFileName[256];
+};
+
+void processarChunk(const vector<pair<int, vector<int>>>& exploradoresVec,
+                   const vector<pair<int, vector<int>>>& perfisVec,
+                   int startIdx, int endIdx, const string& tempFileName) {
     
-    cout << "Carregando perfis de exploracao..." << endl;
-    auto exploradores = lerPerfis(caminhoExplore);
-    cout << "Exploradores carregados: " << exploradores.size() << endl;
-
-    // Converter exploradores para vector para facilitar paralelização
-    vector<pair<int, vector<int>>> exploradoresVec;
-    exploradoresVec.reserve(exploradores.size());
-    for (const auto& [uid, filmes] : exploradores) {
-        exploradoresVec.emplace_back(uid, filmes);
-    }
-
-    // Converter perfis para vector para facilitar acesso paralelo
-    vector<pair<int, vector<int>>> perfisVec;
-    perfisVec.reserve(perfis.size());
-    for (const auto& [uid, filmes] : perfis) {
-        perfisVec.emplace_back(uid, filmes);
-    }
-
-    // Armazenar resultados de forma thread-safe
-    vector<string> resultados(exploradoresVec.size());
-
     const int K = 10;
     const int MAX_RECOMMENDATIONS = 10;
     const double MIN_SIMILARITY = 0.01;
-
-    // Variáveis para contagem thread-safe
-    int processados = 0;
-    mutex processadosMutex;
-
-    cout << "Iniciando processamento paralelo com " << omp_get_max_threads() << " threads..." << endl;
-
-    // Paralelizar o loop principal
-    #pragma omp parallel for schedule(dynamic, 1)
-    for (size_t idx = 0; idx < exploradoresVec.size(); ++idx) {
+    
+    vector<string> resultados;
+    resultados.reserve(endIdx - startIdx);
+    
+    for (int idx = startIdx; idx < endIdx; ++idx) {
         const auto& [uidExplorador, filmesExplorador] = exploradoresVec[idx];
         
-        // Min-Heap para Top-K usuários mais similares
         priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> topK;
         
-        // Calcular similaridades e manter apenas os K maiores
         for(const auto& [uid, filmes] : perfisVec){
             if (uid == uidExplorador) continue;
             
             double sim = jaccard(filmesExplorador, filmes);
             
-            // Só considerar usuários com similaridade mínima
             if (sim >= MIN_SIMILARITY) {
                 if (topK.size() < K) {
                     topK.push({sim, uid});
@@ -144,7 +118,6 @@ void recomendarJaccard(
             }
         }
         
-        // Converter heap para vector ordenado
         vector<pair<double, int>> candidatos;
         candidatos.reserve(topK.size());
         
@@ -155,28 +128,10 @@ void recomendarJaccard(
         
         reverse(candidatos.begin(), candidatos.end());
 
-        // Thread-safe debug (apenas para primeiros exploradores)
-        if (idx < 5) {
-            #pragma omp critical
-            {
-                cout << "Explorador " << uidExplorador << " (" << filmesExplorador.size() 
-                     << " filmes), top similares: ";
-                for (size_t i = 0; i < min((size_t)5, candidatos.size()); ++i) {
-                    cout << "U" << candidatos[i].second << "(" 
-                         << fixed << setprecision(3) << candidatos[i].first << ") ";
-                }
-                cout << endl;
-            }
-        }
-
-        // Min-Heap para Top-K recomendações de filmes
         priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> topFilmes;
-        
-        // Gerar recomendações ponderadas pela similaridade
         unordered_map<int, double> filmeScore;
         
         for (const auto& [similaridade, similarUid] : candidatos) {
-            // Encontrar perfil do usuário similar
             auto it = find_if(perfisVec.begin(), perfisVec.end(), 
                              [similarUid](const pair<int, vector<int>>& p) {
                                  return p.first == similarUid;
@@ -192,7 +147,6 @@ void recomendarJaccard(
             }
         }
 
-        // Usar min-heap para manter apenas os MAX_RECOMMENDATIONS melhores filmes
         for (const auto& [filme, score] : filmeScore) {
             if (topFilmes.size() < MAX_RECOMMENDATIONS) {
                 topFilmes.push({score, filme});
@@ -202,7 +156,6 @@ void recomendarJaccard(
             }
         }
 
-        // Converter heap de filmes para vector ordenado
         vector<pair<double, int>> filmesOrdenados;
         filmesOrdenados.reserve(topFilmes.size());
         
@@ -213,49 +166,104 @@ void recomendarJaccard(
         
         reverse(filmesOrdenados.begin(), filmesOrdenados.end());
 
-        // Thread-safe debug das recomendações (apenas para primeiros exploradores)
-        if (idx < 5) {
-            #pragma omp critical
-            {
-                cout << "  Top recomendações: ";
-                for (size_t i = 0; i < min((size_t)5, filmesOrdenados.size()); ++i) {
-                    cout << "F" << filmesOrdenados[i].second << "(" 
-                         << fixed << setprecision(2) << filmesOrdenados[i].first << ") ";
-                }
-                cout << endl;
-            }
-        }
-
-        // Construir string de resultado
         stringstream ss;
         ss << uidExplorador;
         for (const auto& [score, filme] : filmesOrdenados) {
             ss << " " << filme;
         }
         
-        resultados[idx] = ss.str();
-        
-        // Atualizar contador de forma thread-safe
-        {
-            lock_guard<mutex> lock(processadosMutex);
-            processados++;
-            if (processados % 100 == 0) {
-                cout << "Processados: " << processados << " exploradores" << endl;
-            }
+        resultados.push_back(ss.str());
+    }
+    
+    ofstream tempFile(tempFileName);
+    if (tempFile.is_open()) {
+        for (const string& resultado : resultados) {
+            tempFile << resultado << "\n";
         }
+        tempFile.close();
+    } else {
+        cerr << "Erro ao abrir arquivo temporário: " << tempFileName << endl;
+    }
+}
+
+void recomendarJaccard(
+    const string& caminhoInput,
+    const string& caminhoExplore,
+    const string& caminhoOutput
+) {
+    auto perfis = lerPerfis(caminhoInput);
+    auto exploradores = lerPerfis(caminhoExplore);
+
+    vector<pair<int, vector<int>>> exploradoresVec;
+    exploradoresVec.reserve(exploradores.size());
+    for (const auto& [uid, filmes] : exploradores) {
+        exploradoresVec.emplace_back(uid, filmes);
     }
 
-    // Escrever resultados no arquivo
+    vector<pair<int, vector<int>>> perfisVec;
+    perfisVec.reserve(perfis.size());
+    for (const auto& [uid, filmes] : perfis) {
+        perfisVec.emplace_back(uid, filmes);
+    }
+
+    int numProcessos = sysconf(_SC_NPROCESSORS_ONLN);
+    if (numProcessos <= 0) numProcessos = 4;
+    
+    int totalExploradores = exploradoresVec.size();
+    int chunkSize = (totalExploradores + numProcessos - 1) / numProcessos;
+    
+    vector<pid_t> processos;
+    vector<string> arquivosTemp;
+    
+    for (int i = 0; i < numProcessos; ++i) {
+        int startIdx = i * chunkSize;
+        int endIdx = min(startIdx + chunkSize, totalExploradores);
+        
+        if (startIdx >= totalExploradores) break;
+        
+        string tempFileName = "temp_" + to_string(i) + "_" + to_string(getpid()) + ".dat";
+        arquivosTemp.push_back(tempFileName);
+        
+        pid_t pid = fork();
+        
+        if (pid == -1) {
+            cerr << "Erro ao criar processo filho: " << strerror(errno) << endl;
+            continue;
+        } else if (pid == 0) {
+            processarChunk(exploradoresVec, perfisVec, startIdx, endIdx, tempFileName);
+            exit(0);
+        } else {
+            processos.push_back(pid);
+        }
+    }
+    
+    for (pid_t pid : processos) {
+        int status;
+        waitpid(pid, &status, 0);
+    }
+    
     ofstream out(caminhoOutput);
-    if(!out.is_open()){
+    if (!out.is_open()) {
         cerr << "Erro ao abrir o arquivo: " << caminhoOutput << "\n";
         return;
     }
-
-    for (const string& resultado : resultados) {
-        out << resultado << "\n";
+    
+    for (const string& tempFileName : arquivosTemp) {
+        ifstream tempFile(tempFileName);
+        if (tempFile.is_open()) {
+            string linha;
+            while (getline(tempFile, linha)) {
+                out << linha << "\n";
+            }
+            tempFile.close();
+            
+            if (remove(tempFileName.c_str()) != 0) {
+                cerr << "Aviso: Não foi possível remover arquivo temporário " << tempFileName << endl;
+            }
+        } else {
+            cerr << "Erro ao abrir arquivo temporário: " << tempFileName << endl;
+        }
     }
-
+    
     out.close();
-    cout << "Recomendacoes geradas para " << processados << " usuarios em " << caminhoOutput << endl;
 }

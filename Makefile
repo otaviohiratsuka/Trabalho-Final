@@ -1,7 +1,7 @@
 # Compilador e flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto -fopenmp -Iinclude
-LDFLAGS = -fopenmp
+CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto -Iinclude 
+LDFLAGS = 
 
 # Diretórios
 SRC_DIR = src
@@ -33,9 +33,23 @@ run: $(BIN)
 clean:
 	rm -rf $(BUILD_DIR) $(BIN)
 
-# Regra para compilar sem OpenMP (caso necessário)
-no-openmp: CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto -Iinclude
-no-openmp: LDFLAGS = 
-no-openmp: $(BIN)
+# Regra para compilar com OpenMP (caso necessário para comparação)
+with-openmp: CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto -fopenmp -Iinclude
+with-openmp: LDFLAGS = -fopenmp
+with-openmp: $(BIN)
 
-.PHONY: all run clean no-openmp
+# Regra para compilar para debug
+debug: CXXFLAGS = -std=c++17 -Wall -Wextra -g -O0 -Iinclude
+debug: LDFLAGS = 
+debug: $(BIN)
+
+# Regra para limpeza de arquivos temporários gerados pelo algoritmo
+clean-temp:
+	rm -f temp_*.dat
+	rm -f outcome/output_*.dat
+	rm -f datasets/explore_test.dat
+
+# Regra para limpeza completa (inclui arquivos temporários)
+clean-all: clean clean-temp
+
+.PHONY: all run clean with-openmp debug clean-temp clean-all
