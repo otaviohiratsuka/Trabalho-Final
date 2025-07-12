@@ -205,15 +205,15 @@ A ∪ B = {1, 2, 3, 4} → tamanho = 4
 J(A, B) = 2 / 4 = 0.5
 ```
 
-
-**a) LEITURA DE PERFIS**
+ **a)Leitura de Perfis**
    
-Como o começo do processo do algoritmo foi feita uma função [LeitorPerfiss(const string& caminho)](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L21-L58). Que tem o objetivo de ler um arquivo de perfis de usuários, onde cada linha representa os filmes que um usuários assistiu, e transformar em um `unordered_map<int, vector<int>>`.
+Como o começo do processo do algoritmo foi feita uma função [lerPerfis(const string& caminho)](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L21-L58). Que tem o objetivo de ler um arquivo de perfis de usuários, onde cada linha representa os filmes que um usuários assistiu, e transformar em um `unordered_map<int, vector<int>>`.
    * Entrada -> `caminho`: nome do arquivo (ex: ratings.csv).
    * Saída -> Um `Perfil`, que é um alias para:
      ```
         using Perfil = unordered_map<int, vector<int>>;
      ```
+
 **O que a função faz?**
 
 A função lê cada linha e extrai o `uid` e os filmes assistidos (`filmeId: rating` -> pega só o `filmeId`). Depois ordena e remove duplicatas de filmes e salva no `unordered_map`
@@ -247,10 +247,11 @@ A função lê cada linha e extrai o `uid` e os filmes assistidos (`filmeId: rat
         perfis[uid] = move(filmes);
     }
 ```
+É importante citar o uso de `vector<int>` ordenado ao invés do `unordered_set`, que permite Permite calcular interseção e união em tempo linear O(m + n) usando duas pontas (`i`, `j`), dentro da função `jaccard`. O `unordered_set` se mostra mais lento para interseções frequentes porque exige hashing e alocação dinâmica.
 
-**b) CALCULADOR DE SIMILARIDADE**
+**b) Função Jaccard**
    
-   Para implementar a similaridade de jaccard usamos a função [calculadorSimilaridade](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L60-L89). Essa função calcula a similaridade de jaccard entre dois usuários com base nos filmes que assistiram. Dois vetores ordenados de `int`, representando filmes assistidos por dois usuários são as entradas e o valor `double` entre 0 e 1, indicando a similaridade Jaccard é a saída.
+   Para implementar a similaridade de jaccard usamos a função [double jaccard](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L60-L89). Essa função calcula a similaridade de jaccard entre dois usuários com base nos filmes que assistiram. Dois vetores ordenados de `int`, representando filmes assistidos por dois usuários são as entradas e o valor `double` entre 0 e 1, indicando a similaridade Jaccard é a saída.
    As duas variáveis (`i`, `j`) são usadas para percorrer os vetores ordenados. Após isso, é contado quantos filmes estão em comum (**intersecção**). E calcula a união com: $uniao = |a| + |b| - interssec$
 
    Retornando:
@@ -266,10 +267,11 @@ while (i < a.size() && j < b.size()) {
     else j++;
 }
 ```
+Nota-se que existe um cálculo eficiente da interseção com ponteiros duplos. Isso trás vantagens para algoritmo, pois utiliza o fato de os vetores estarem ordenados para calcular interseção sem estrutura adicional, sem `set`, sem `map`, sem `find()`. Se mostrando muito mais rápido do que comparar elementos individualmente ou usar estruturas como `std::set_intersection`. Assim, tornando o cálculo de Jaccard tão rápido quanto possível com vetores ordenados.
 
-**c) PROCESSADOR DE RECOMENDAÇÕES**
+**c) Processar Chunk**
 
-Para processar um subconjunto (chunk) dos exploradores, calcular similaridade, gerar recomendação e salvar os resultados em arquivo temporário, foi criado a função [ProcessadorRecomendacoes](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L90-L188). O `exploradoresVec` é o vetor de pares `<uid, filmes>` dos usuários a serem recomendados. `PerfisVec` são todos os usuários com seus filmes. `startIdx`, `endIdx` é o intervalo de índices para esse processo. `tempFileName` é o nome do arquivo onde o processo salvará o resultado.
+Para processar um subconjunto (chunk) dos exploradores, calcular similaridade, gerar recomendação e salvar os resultados em arquivo temporário, foi criado a função [processarChunk](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L90-L188). O `exploradoresVec` é o vetor de pares `<uid, filmes>` dos usuários a serem recomendados. `PerfisVec` são todos os usuários com seus filmes. `startIdx`, `endIdx` é o intervalo de índices para esse processo. `tempFileName` é o nome do arquivo onde o processo salvará o resultado.
 Na saída o `tempFileName` escreve as recomendações no formato:
 ```
 UID filme1 filme2 filme3 ...
@@ -290,72 +292,72 @@ A função para cada explorador, compara com todos os perfis, calcula jaccard e 
 
 Agora, para os top-10 semelhantes é usado: `filmeScore[filme] += similaridade;`, que recomenda os filmes que o explorado **ainda não viu** e o peso do filme depende da similaridade com o vizinho. Depois a função pega os top-10 filmes com maior score  `priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> topFilmes;`, usa o heap para manter os 10 melhores e salva recomendações no arquivo temporário.
 
-Aqui está a seção atualizada com a divisão entre **d) Gerenciador de Processos** e **e) Recomendação usando Jaccard**, mantendo o estilo original mas refletindo a estrutura modular:
+O uso de `priority_queue` para manter top-K elementos entrega alguns bônus como Evita ordenar todos os candidatos (custo **O(n log n)**) — só mantém os 10 melhores (`K = 10`) com custo **O(log K)** por inserção. Usado duas vezes: Para armazenar os top-K usuários mais similares e para armazenar os top-10 filmes mais recomendados. O resultado disso é que Minimiza o custo de ordenação e maximiza a eficiência na seleção dos melhores vizinhos e melhores filmes.
 
----
+Nessa mesma função também usamos a filtragem pro similaridade mínima (`if (sim >= MIN_SIMILARITY)`) que ignora comparações com usuários muito diferentes. Isso evita populamento da heap com valores irrelevantes e economiza tempo e memória. Isso trás uma redução de custo computacional com comparações inúteis.
 
-**d) GERENCIADOR DE PROCESSOS**
+**d) Recomendação usando Jaccard**
 
-No [GerenciadorProcessos::executarProcessosParalelos](https://github.com/...), o objetivo é paralelizar o processamento usando `fork()` e gerenciar os arquivos temporários.
+No [recomendarJaccard()](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L189-L266), o objetivo é controlar a leitura dos arquivos, paralelizar o processo usando `fork()`, e combinar os resultados em um arquivo final.
 
-* Recebe:
-  - `exploradores`: vetor de pares `<uid, filmes>` já convertido
-  - `perfis`: vetor de todos os usuários com seus filmes
-  - `caminhoSaida`: destino final das recomendações
-  - `numProcessos`: número de processos a criar (opcional)
+* `caminhoInput`: perfis base.
+* `caminhoExplore`: perfis dos exploradores.
+* `caminhoOutput`: arquivo de saída final com as recomendações.
+* E cria um arquivo com recomendações de filmes por usuário.
 
-A função:
-1. Divide o trabalho em chunks:
-```cpp
-int chunkSize = (totalExploradores + numProcessos - 1) / numProcessos;
+Na leitura, carrega os dois arquivos em unordered_map.
 ```
-2. Para cada chunk cria um processo filho:
-```cpp
+auto perfis = lerPerfis(caminhoInput);
+auto exploradores = lerPerfis(caminhoExplore);
+```
+E converte para `vector<pair<>>`: `for (const auto& [uid, filmes] : exploradores) exploradoresVec.emplace_back(uid, filmes);
+`, assim facilita a indexação e divisão de dados.
+
+Para a melhor otimização do código, usamos o paralelismo com o `fork()`, que divide o vetor de exploradores em `P` partes (onde `P = núcleos da CPU`) e com isso cada processo executa `processaChunk(...)` com seu pedaço. E os resultados são salvos em arquivos temporários separados.
+```
 pid_t pid = fork();
 if (pid == 0) {
-    ProcessadorRecomendacoes::processarLote(...);
-    _exit(0);
-}
-```
-3. Gera arquivos temporários com nomes únicos:
-```cpp
-string tempFileName = "temp_" + to_string(i) + "_" + to_string(getpid()) + ".dat";
-```
-
-4. Espera todos processos terminarem:
-```cpp
-waitpid(pid, &status, 0);
-```
-
----
-
-**e) RECOMENDAÇÃO USANDO JACCARD**
-
-Na função principal [recomendarJaccard()](https://github.com/...), agora com responsabilidade de juntar todos as outras funções em um arquivo e função:
-
-* Fluxo principal:
-1. Carrega os arquivos usando `LeitorPerfis`:
-```cpp
-auto perfis = LeitorPerfis::lerArquivo(caminhoInput);
-auto exploradores = LeitorPerfis::lerArquivo(caminhoExplore);
-```
-
-2. Converte para vetor indexável:
-```cpp
-vector<pair<int, vector<int>>> exploradoresVec;
-for (const auto& [uid, filmes] : exploradores) {
-    exploradoresVec.emplace_back(uid, filmes);
+    processarChunk(...);
+    exit(0);
 }
 ```
 
-3. Delega o processamento paralelo:
-```cpp
-GerenciadorProcessos::executarProcessosParalelos(
-    exploradoresVec, 
-    perfisVec, 
-    caminhoOutput
-);
+As vantagens do `fork()` são claras, é notório que a carga de trabalho é dividida proporcionalmente entre os núcleos disponíveis. Cada processo cuida de um pedaço dos exploradores, sem compartilhamento de memória (evita race conditions). 
+O ganho de performance proporcional ao número de núcleos da máquina (`P`). Complexidade total reduzida de `O(E x U x m)` para `O((E x U x m) / P). Onde:
+
+* `E` = número de exploradores
+* `U` = número de usuários no dataset
+* `m` = tamanho médio de filmes por usuário
+* `K`= número de vizinhos
+
+Para cada explorador, é comparado com `U` usuários -> **O(U x m)**. Atualiza top-k -> **O(log K)**. Percorre os filmes dos top-K → **O(K × m)**. Ordena os top 10 → **O(log 10)**. 
+
+**Total por explorador:**
+`O(U × m + K × m + log K) ≈ O(U × m)` (pois `K` é constante)
+
+**Total geral (sem paralelização):**
+`O(E × U × m)`
+
+**Com paralelização (`P` processos):**
+`O((E × U × m) / P)`
+
+
+Ainda na função `recomendarJaccard` é perceptivel que o algoritmo evita recomputar dados com conversão inicial de `unordered_map` para `vector<pair<>>`. Ao converter para `vector`, é possivel indexar diretamente (`[i]`), o que é mais rápido que iterar `unordered_map`, também melhora o desempenho do paralelismo, pois os dados são contíguos na memória. 
+
+Com essa otimizações é entregue o menor overhead de acesso e melhor cache-locality durante execução. 
+
+
+Finalizando, para unir os resultados a função junta todos os arquivos temporários no arquivo de saída final.
+
 ```
+for (const string& tempFileName : arquivosTemp) {
+    ifstream tempFile(tempFileName);
+    while (getline(tempFile, linha)) out << linha << "\n";
+}
+```
+
+O salvamento assíncrono em arquivos temporários mostra que cada processo escreve seu resultado em um arquivo temporário isolado e evita problemas de concorrência na escrita e dispensa locks. A execução paralela mais segura e simples, sem riscos de race conditions em disco.
+
 
 
 ---
