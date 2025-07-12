@@ -382,7 +382,7 @@ Os resultados médios obtidos são os seguintes:
 * Uso Médio de Memória (VmRSS): 281656 kB
 </p>
 
-### ANÁLISE DE COMPLEXIDADE
+### 📊 ANÁLISE DE COMPLEXIDADE
 
 **1 - PRÉ-PROCESSAMENTO**
 
@@ -420,7 +420,7 @@ $$
 
 Observação: **99% do tempo está no** `processarChunk`, resto se mostra mais leve
 
-### CONCLUSÕES GERAIS
+### ✅ CONCLUSÕES GERAIS
 
 A complexidade Final do Sistema (pré-processamento + recomendação):
 
@@ -466,7 +466,7 @@ A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o proce
 |  `make`              	 | Compila o código-fonte conforme as regras definidas no Makefile | 
 |  `make run`            | Executa a compilação do programa utilizando o gcc, e o resultado vai para a pasta build, além de em seguida executar o programa da pasta build após a realização da compilação |
 
-## AUTORES
+## 🖊️ AUTORES
 
 Esse trabalho foi realizado pelos seguintes integrantes.
 
