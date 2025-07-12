@@ -395,6 +395,12 @@ A escrita paralelizada divide o trabalho em **P processos**, reduzindo o tempo r
 
 *Resumo*: Eficiente para grandes volumes de dados (como o MovieLens 25M), com operações otimizadas para evitar gargalos.
 
+**2 - RECOMENDAÇÃO**
+### CONCLUSÕES GERAIS
+<p>
+    
+</p>
+
 ### AMBIENTE DE TESTES
 <p>Os testes de desempenho e a execução do sistema foram realizados no seguinte ambiente: 
     
