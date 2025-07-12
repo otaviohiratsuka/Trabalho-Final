@@ -64,6 +64,57 @@ O professor definiu algumas **regras obrigatórias** que devem ser seguidas na i
 
 ---
 
+## 🗂️ ESTRUTURA DO PROJETO
+
+
+```
+ProjetoRecomendacao/
+│
+├── datasets/
+│   ├── explore.dat       # Arquivo de usuários para gerar recomendações
+│   ├── input.dat         # Saída do pré-processamento (formato usuário filme:nota)
+│   ├── movies.csv        # Metadados dos filmes (opcional para recomendações avançadas)
+│   └── ratings.csv       # Base de dados principal (avaliações brutas)
+│
+├── docs/
+│   └── Fluxograma.png    # Diagrama do fluxo do sistema
+│
+├── include/
+│   ├── jaccard/
+│   │   ├── CalculadorSimilaridade.hpp
+│   │   ├── GerenciadorProcessos.hpp
+│   │   ├── Jaccard.hpp
+│   │   ├── LeitorPerfis.hpp
+│   │   └── ProcessadorRecomendacoes.hpp
+│   │
+│   └── preprocess/
+│       ├── agrupar.hpp
+│       ├── ler.hpp
+│       └── preprocess.hpp
+│
+├── src/
+│   ├── jaccard/
+│   │   ├── CalculadorSimilaridade.cpp
+│   │   ├── GerenciadorProcessos.cpp
+│   │   ├── Jaccard.cpp
+│   │   ├── LeitorPerfis.cpp
+│   │   └── ProcessadorRecomendacoes.cpp
+│   │
+│   ├── preprocess/
+│   │   ├── agrupar.cpp
+│   │   ├── ler.cpp
+│   │   └── preprocess.cpp
+│   │
+│   └── main.cpp          # Ponto de entrada do programa
+│
+├── outcome/
+│   └── output.dat        # Resultado final das recomendações
+│
+├── Makefile              # Contém regras para compilar e executar
+└── README.md             # Documentação do projeto (instruções, requisitos)
+```
+
+
 ## 🧪 METODOLOGIA
 
 Nesta seção, apresentamos a metodologia adotada no desenvolvimento do projeto, detalhando as etapas de pré-processamento dos dados e os algoritmos de recomendação utilizados. Discutimos os critérios que motivaram essas escolhas, bem como as alterações realizadas ao longo do processo, que impactaram diretamente o desempenho e influenciaram na decisão final.
@@ -155,9 +206,9 @@ J(A, B) = 2 / 4 = 0.5
 ```
 
 
-1. Leitura de Perfis
+**a) LEITURA DE PERFIS**
    
-    Como o começo do processo do algoritmo foi feita uma função [lerPerfis(const string& caminho)](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L21-L58). Que tem o objetivo de ler um arquivo de perfis de usuários, onde cada linha representa os filmes que um usuários assistiu, e transformar em um `unordered_map<int, vector<int>>`.
+Como o começo do processo do algoritmo foi feita uma função [LeitorPerfiss(const string& caminho)](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L21-L58). Que tem o objetivo de ler um arquivo de perfis de usuários, onde cada linha representa os filmes que um usuários assistiu, e transformar em um `unordered_map<int, vector<int>>`.
    * Entrada -> `caminho`: nome do arquivo (ex: ratings.csv).
    * Saída -> Um `Perfil`, que é um alias para:
      ```
@@ -197,9 +248,9 @@ A função lê cada linha e extrai o `uid` e os filmes assistidos (`filmeId: rat
     }
 ```
 
-2. Função Jaccard
+**b) CALCULADOR DE SIMILARIDADE**
    
-   Para implementar a similaridade de jaccard usamos a função [double jaccard](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L60-L89). Essa função calcula a similaridade de jaccard entre dois usuários com base nos filmes que assistiram. Dois vetores ordenados de `int`, representando filmes assistidos por dois usuários são as entradas e o valor `double` entre 0 e 1, indicando a similaridade Jaccard é a saída.
+   Para implementar a similaridade de jaccard usamos a função [calculadorSimilaridade](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L60-L89). Essa função calcula a similaridade de jaccard entre dois usuários com base nos filmes que assistiram. Dois vetores ordenados de `int`, representando filmes assistidos por dois usuários são as entradas e o valor `double` entre 0 e 1, indicando a similaridade Jaccard é a saída.
    As duas variáveis (`i`, `j`) são usadas para percorrer os vetores ordenados. Após isso, é contado quantos filmes estão em comum (**intersecção**). E calcula a união com: $uniao = |a| + |b| - interssec$
 
    Retornando:
@@ -216,9 +267,9 @@ while (i < a.size() && j < b.size()) {
 }
 ```
 
-3. Processar Chunk
+**c) PROCESSADOR DE RECOMENDAÇÕES**
 
-Para processar um subconjunto (chunk) dos exploradores, calcular similaridade, gerar recomendação e salvar os resultados em arquivo temporário, foi criado a função [processarChunk](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L90-L188). O `exploradoresVec` é o vetor de pares `<uid, filmes>` dos usuários a serem recomendados. `PerfisVec` são todos os usuários com seus filmes. `startIdx`, `endIdx` é o intervalo de índices para esse processo. `tempFileName` é o nome do arquivo onde o processo salvará o resultado.
+Para processar um subconjunto (chunk) dos exploradores, calcular similaridade, gerar recomendação e salvar os resultados em arquivo temporário, foi criado a função [ProcessadorRecomendacoes](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L90-L188). O `exploradoresVec` é o vetor de pares `<uid, filmes>` dos usuários a serem recomendados. `PerfisVec` são todos os usuários com seus filmes. `startIdx`, `endIdx` é o intervalo de índices para esse processo. `tempFileName` é o nome do arquivo onde o processo salvará o resultado.
 Na saída o `tempFileName` escreve as recomendações no formato:
 ```
 UID filme1 filme2 filme3 ...
@@ -239,43 +290,77 @@ A função para cada explorador, compara com todos os perfis, calcula jaccard e 
 
 Agora, para os top-10 semelhantes é usado: `filmeScore[filme] += similaridade;`, que recomenda os filmes que o explorado **ainda não viu** e o peso do filme depende da similaridade com o vizinho. Depois a função pega os top-10 filmes com maior score  `priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> topFilmes;`, usa o heap para manter os 10 melhores e salva recomendações no arquivo temporário.
 
-4. Recomendação usando Jaccard
+Aqui está a seção atualizada com a divisão entre **d) Gerenciador de Processos** e **e) Recomendação usando Jaccard**, mantendo o estilo original mas refletindo a estrutura modular:
 
-No [recomendarJaccard()](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L189-L266), o objetivo é controlar a leitura dos arquivos, paralelizar o processo usando `fork()`, e combinar os resultados em um arquivo final.
+---
 
-* `caminhoInput`: perfis base.
-* `caminhoExplore`: perfis dos exploradores.
-* `caminhoOutput`: arquivo de saída final com as recomendações.
-* E cria um arquivo com recomendações de filmes por usuário.
+**d) GERENCIADOR DE PROCESSOS**
 
-Na leitura, carrega os dois arquivos em unordered_map.
+No [GerenciadorProcessos::executarProcessosParalelos](https://github.com/...), o objetivo é paralelizar o processamento usando `fork()` e gerenciar os arquivos temporários.
+
+* Recebe:
+  - `exploradores`: vetor de pares `<uid, filmes>` já convertido
+  - `perfis`: vetor de todos os usuários com seus filmes
+  - `caminhoSaida`: destino final das recomendações
+  - `numProcessos`: número de processos a criar (opcional)
+
+A função:
+1. Divide o trabalho em chunks:
+```cpp
+int chunkSize = (totalExploradores + numProcessos - 1) / numProcessos;
 ```
-auto perfis = lerPerfis(caminhoInput);
-auto exploradores = lerPerfis(caminhoExplore);
-```
-E converte para `vector<pair<>>`: `for (const auto& [uid, filmes] : exploradores) exploradoresVec.emplace_back(uid, filmes);
-`, assim facilita a indexação e divisão de dados.
-
-Para a melhor otimização do código, usamos o paralelismo com o `fork()`, que divide o vetor de exploradores em `P` partes (onde `P = núcleos da CPU`) e com isso cada processo executa `processaChunk(...)` com seu pedaço. E os resultados são salvos em arquivos temporários separados.
-```
+2. Para cada chunk cria um processo filho:
+```cpp
 pid_t pid = fork();
 if (pid == 0) {
-    processarChunk(...);
-    exit(0);
+    ProcessadorRecomendacoes::processarLote(...);
+    _exit(0);
+}
+```
+3. Gera arquivos temporários com nomes únicos:
+```cpp
+string tempFileName = "temp_" + to_string(i) + "_" + to_string(getpid()) + ".dat";
+```
+
+4. Espera todos processos terminarem:
+```cpp
+waitpid(pid, &status, 0);
+```
+
+---
+
+**e) RECOMENDAÇÃO USANDO JACCARD**
+
+Na função principal [recomendarJaccard()](https://github.com/...), agora com responsabilidade de juntar todos as outras funções em um arquivo e função:
+
+* Fluxo principal:
+1. Carrega os arquivos usando `LeitorPerfis`:
+```cpp
+auto perfis = LeitorPerfis::lerArquivo(caminhoInput);
+auto exploradores = LeitorPerfis::lerArquivo(caminhoExplore);
+```
+
+2. Converte para vetor indexável:
+```cpp
+vector<pair<int, vector<int>>> exploradoresVec;
+for (const auto& [uid, filmes] : exploradores) {
+    exploradoresVec.emplace_back(uid, filmes);
 }
 ```
 
-Finalizando, para unir os resultados a função junta todos os arquivos temporários no arquivo de saída final.
-
+3. Delega o processamento paralelo:
+```cpp
+GerenciadorProcessos::executarProcessosParalelos(
+    exploradoresVec, 
+    perfisVec, 
+    caminhoOutput
+);
 ```
-for (const string& tempFileName : arquivosTemp) {
-    ifstream tempFile(tempFileName);
-    while (getline(tempFile, linha)) out << linha << "\n";
-}
-```
 
 
-## ANÁLISES E CONCLUSÕES
+---
+
+## 🔍 ANÁLISES E CONCLUSÕES
 <p>O desenvolvimento deste sistema de recomendação de filmes não se limitou à implementação das funcionalidades, mas também envolveu uma profunda análise comparativa das diferentes métricas de similaridade e uma avaliação rigorosa do desempenho. As decisões tomadas ao longo do projeto foram guiadas pela busca por eficiência computacional, qualidade das recomendações e robustez geral do sistema.
 
 ### Escolha da Métrica de Similaridade: Índice de Jaccard
@@ -295,7 +380,20 @@ Os resultados médios obtidos são os seguintes:
 * Uso Médio de Memória (VmRSS): 281656 kB
 </p>
 
-### ANÁLISE DE DESEMPENHO
+### ANÁLISE DE COMPLEXIDADE
+
+**1 - PRÉ-PROCESSAMENTO**
+
+O pré-processamento tem complexidade **O(N log N)** no pior caso, devido à ordenação para remoção de duplicatas (`sort + unique`). As outras etapas são lineares:  
+
+- Leitura e parsing: **O(N)**  
+- Contagem de usuários/filmes: **O(N)**  
+- Filtragem com hash maps: **O(1)** por operação  
+- Agrupamento: **O(N)**  
+
+A escrita paralelizada divide o trabalho em **P processos**, reduzindo o tempo real, mas mantendo a complexidade total. A pré-alocação de memória (`reserve()`) evita operações O(N) de realocação dinâmica.  
+
+*Resumo*: Eficiente para grandes volumes de dados (como o MovieLens 25M), com operações otimizadas para evitar gargalos.
 
 ### AMBIENTE DE TESTES
 <p>Os testes de desempenho e a execução do sistema foram realizados no seguinte ambiente: 
