@@ -415,15 +415,34 @@ A escrita paralelizada divide o trabalho em **P processos**, reduzindo o tempo r
 **Complexidade Total de** `Jaccard.cpp`:
 
 $$
-    O((N + E) \cdot m log m + \frac{E \cdot N \cdot m }{P})
+    O((N + E) \cdot m \ \log \ m + \frac{E \cdot N \cdot m }{P})
 $$
 
 Observação: **99% do tempo está no** `processarChunk`, resto se mostra mais leve
 
 ### CONCLUSÕES GERAIS
-<p>
-    
-</p>
+
+A complexidade Final do Sistema (pré-processamento + recomendação):
+
+$$
+O(N \ \log \ N + (N + E) \cdot m \ \log \ m + \frac{E \cdot N \cdot m}{P})
+$$ 
+
+**Conclusão Técnica**
+
+O sistema tem custo escalável, porém o gargalo está no cálculo de similaridade Jaccard entre todos os pares de explorador × perfil.
+Mesmo com paralelismo, esse custo cresce quadraticamente com o número de usuários, e linearmente com a quantidade média de filmes (`m`).
+
+**Possíveis Próximas Otimizações**
+
+Se quiser escalar para milhões de usuários ou usar em tempo real, considere:
+* Redução do espaço de comparação (ex: comparar só com um subconjunto amostrado dos perfis).
+* Indexação aproximada:
+  - MinHash + LSH para estimar Jaccard rapidamente
+  - Reduz custo para sublinear (dependendo da qualidade esperada)
+* Paralelismo com `std::thread` ou `OpenMP` (evita overhead de `fork()` e I/O de arquivos)
+* Cálculo incremental: se os perfis mudam pouco, recompute parcialmente.
+
 
 ### AMBIENTE DE TESTES
 <p>Os testes de desempenho e a execução do sistema foram realizados no seguinte ambiente: 
