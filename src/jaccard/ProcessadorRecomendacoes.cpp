@@ -13,17 +13,13 @@ void ProcessadorRecomendacoes::processarLote(
     int fim,
     const std::string& nomeArquivoTemp
 ) {
-    const int K = 10; // Número de usuários similares a considerar
-    const int MAX_RECOMMENDATIONS = 10; // Número máximo de recomendações
-    const double MIN_SIMILARITY = 0.01; // Similaridade mínima
-    
     std::vector<std::string> resultados;
     resultados.reserve(fim - inicio);
     
     for (int idx = inicio; idx < fim; ++idx) {
         const auto& [uidExplorador, filmesExplorador] = exploradores[idx];
         
-        // Passo 1: Encontrar K usuários mais similares
+        // Passo 1: Encontrar TOP_K_SIMILAR_USERS usuários mais similares
         std::priority_queue<std::pair<double, int>, 
                           std::vector<std::pair<double, int>>, 
                           std::greater<std::pair<double, int>>> topK;
@@ -33,8 +29,8 @@ void ProcessadorRecomendacoes::processarLote(
             
             double sim = CalculadorSimilaridade::calcularJaccard(filmesExplorador, filmes);
             
-            if (sim >= MIN_SIMILARITY) {
-                if (topK.size() < K) {
+            if (sim >= MIN_SIMILARITY_THRESHOLD) {
+                if (topK.size() < TOP_K_SIMILAR_USERS) {
                     topK.push({sim, uid});
                 } else if (sim > topK.top().first) {
                     topK.pop();
@@ -71,7 +67,7 @@ void ProcessadorRecomendacoes::processarLote(
             }
         }
 
-        // Passo 3: Selecionar os melhores filmes
+        // Passo 3: Selecionar os TOP_N_RECOMMENDATIONS melhores filmes
         std::priority_queue<std::pair<double, int>> topFilmes;
         for (const auto& [filme, score] : filmeScores) {
             topFilmes.emplace(score, filme);
@@ -79,7 +75,7 @@ void ProcessadorRecomendacoes::processarLote(
 
         // Coletar resultados ordenados
         std::vector<int> filmesRecomendados;
-        while (!topFilmes.empty() && filmesRecomendados.size() < MAX_RECOMMENDATIONS) {
+        while (!topFilmes.empty() && filmesRecomendados.size() < TOP_N_RECOMMENDATIONS) {
             filmesRecomendados.push_back(topFilmes.top().second);
             topFilmes.pop();
         }
