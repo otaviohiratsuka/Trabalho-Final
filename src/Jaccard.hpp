@@ -1,15 +1,16 @@
 #ifndef JACCARD_HPP
 #define JACCARD_HPP
 
+#include <vector>
 #include <string>
 
-using namespace std;
+// Declaração da função jaccard atualizada
+double jaccard(const std::vector<int>& a, const std::vector<int>& b);
 
 void recomendarJaccard(
-
-    const string& caminhoInput,
-    const string& caminhoExplore,
-    const string& caminhoOutput
+    const std::string& caminhoInput,
+    const std::string& caminhoExplore,
+    const std::string& caminhoOutput
 );
 
 #endif

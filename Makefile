@@ -1,6 +1,7 @@
 # Compilador e flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto -Iinclude
+CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto -fopenmp -Iinclude
+LDFLAGS = -fopenmp
 
 # Diretórios
 SRC_DIR = src
@@ -17,7 +18,7 @@ all: $(BIN)
 
 # Linkagem final
 $(BIN): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@ $^
 
 # Compilação com criação de subpastas em build/
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -31,3 +32,10 @@ run: $(BIN)
 # Limpar objetos e binário
 clean:
 	rm -rf $(BUILD_DIR) $(BIN)
+
+# Regra para compilar sem OpenMP (caso necessário)
+no-openmp: CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -march=native -flto -Iinclude
+no-openmp: LDFLAGS = 
+no-openmp: $(BIN)
+
+.PHONY: all run clean no-openmp

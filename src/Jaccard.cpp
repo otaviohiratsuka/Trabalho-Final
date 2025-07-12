@@ -2,15 +2,18 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 #include <string>
 #include <iostream>
 #include <algorithm>
+#include <iomanip>
+#include <queue>
+#include <omp.h>
+#include <mutex>
 
 using namespace std;
 
-using Perfil = unordered_map<int, unordered_set<int>>;
+using Perfil = unordered_map<int, vector<int>>;
 
 Perfil lerPerfis(const string& caminho){
     Perfil perfis;
@@ -29,38 +32,49 @@ Perfil lerPerfis(const string& caminho){
         ss >> uid;
 
         string par;
-        unordered_set<int> filmes;
+        vector<int> filmes;
         while(ss >> par){
             size_t pos = par.find(":");
             if (pos != string::npos){
                 try {
                     int filmeId = stoi(par.substr(0, pos));
-                    filmes.insert(filmeId);
+                    filmes.push_back(filmeId);
                 } catch (const exception&) {
-                    // Ignora entradas inválidas
                     continue;
                 }
             }
         }
+        
+        // Ordenar e remover duplicatas
+        sort(filmes.begin(), filmes.end());
+        filmes.erase(unique(filmes.begin(), filmes.end()), filmes.end());
+        
         perfis[uid] = move(filmes);
     }
     arq.close();
     return perfis;
 }
 
-double jaccard(const unordered_set<int>& a, const unordered_set<int>& b){
+double jaccard(const vector<int>& a, const vector<int>& b){
     if (a.empty() && b.empty()) return 1.0;
     if (a.empty() || b.empty()) return 0.0;
     
     size_t intersec = 0;
-    // Otimização: iterar sobre o menor conjunto
-    const auto& menor = (a.size() < b.size()) ? a : b;
-    const auto& maior = (a.size() < b.size()) ? b : a;
+    size_t i = 0, j = 0;
     
-    for (int filme : menor) {
-        if (maior.count(filme)) intersec++;
+    // Algoritmo de merge otimizado para contar interseção
+    while (i < a.size() && j < b.size()) {
+        if (a[i] == b[j]) {
+            intersec++;
+            i++; 
+            j++;
+        } else if (a[i] < b[j]) {
+            i++;
+        } else {
+            j++;
+        }
     }
-
+    
     size_t uniao = a.size() + b.size() - intersec;
     return static_cast<double>(intersec) / uniao;
 }
@@ -78,49 +92,168 @@ void recomendarJaccard(
     auto exploradores = lerPerfis(caminhoExplore);
     cout << "Exploradores carregados: " << exploradores.size() << endl;
 
+    // Converter exploradores para vector para facilitar paralelização
+    vector<pair<int, vector<int>>> exploradoresVec;
+    exploradoresVec.reserve(exploradores.size());
+    for (const auto& [uid, filmes] : exploradores) {
+        exploradoresVec.emplace_back(uid, filmes);
+    }
+
+    // Converter perfis para vector para facilitar acesso paralelo
+    vector<pair<int, vector<int>>> perfisVec;
+    perfisVec.reserve(perfis.size());
+    for (const auto& [uid, filmes] : perfis) {
+        perfisVec.emplace_back(uid, filmes);
+    }
+
+    // Armazenar resultados de forma thread-safe
+    vector<string> resultados(exploradoresVec.size());
+
+    const int K = 10;
+    const int MAX_RECOMMENDATIONS = 10;
+    const double MIN_SIMILARITY = 0.01;
+
+    // Variáveis para contagem thread-safe
+    int processados = 0;
+    mutex processadosMutex;
+
+    cout << "Iniciando processamento paralelo com " << omp_get_max_threads() << " threads..." << endl;
+
+    // Paralelizar o loop principal
+    #pragma omp parallel for schedule(dynamic, 1)
+    for (size_t idx = 0; idx < exploradoresVec.size(); ++idx) {
+        const auto& [uidExplorador, filmesExplorador] = exploradoresVec[idx];
+        
+        // Min-Heap para Top-K usuários mais similares
+        priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> topK;
+        
+        // Calcular similaridades e manter apenas os K maiores
+        for(const auto& [uid, filmes] : perfisVec){
+            if (uid == uidExplorador) continue;
+            
+            double sim = jaccard(filmesExplorador, filmes);
+            
+            // Só considerar usuários com similaridade mínima
+            if (sim >= MIN_SIMILARITY) {
+                if (topK.size() < K) {
+                    topK.push({sim, uid});
+                } else if (sim > topK.top().first) {
+                    topK.pop();
+                    topK.push({sim, uid});
+                }
+            }
+        }
+        
+        // Converter heap para vector ordenado
+        vector<pair<double, int>> candidatos;
+        candidatos.reserve(topK.size());
+        
+        while (!topK.empty()) {
+            candidatos.push_back(topK.top());
+            topK.pop();
+        }
+        
+        reverse(candidatos.begin(), candidatos.end());
+
+        // Thread-safe debug (apenas para primeiros exploradores)
+        if (idx < 5) {
+            #pragma omp critical
+            {
+                cout << "Explorador " << uidExplorador << " (" << filmesExplorador.size() 
+                     << " filmes), top similares: ";
+                for (size_t i = 0; i < min((size_t)5, candidatos.size()); ++i) {
+                    cout << "U" << candidatos[i].second << "(" 
+                         << fixed << setprecision(3) << candidatos[i].first << ") ";
+                }
+                cout << endl;
+            }
+        }
+
+        // Min-Heap para Top-K recomendações de filmes
+        priority_queue<pair<double, int>, vector<pair<double, int>>, greater<pair<double, int>>> topFilmes;
+        
+        // Gerar recomendações ponderadas pela similaridade
+        unordered_map<int, double> filmeScore;
+        
+        for (const auto& [similaridade, similarUid] : candidatos) {
+            // Encontrar perfil do usuário similar
+            auto it = find_if(perfisVec.begin(), perfisVec.end(), 
+                             [similarUid](const pair<int, vector<int>>& p) {
+                                 return p.first == similarUid;
+                             });
+            
+            if (it != perfisVec.end()) {
+                const auto& filmesDoUsuario = it->second;
+                for (int filme : filmesDoUsuario) {
+                    if (!binary_search(filmesExplorador.begin(), filmesExplorador.end(), filme)) {
+                        filmeScore[filme] += similaridade;
+                    }
+                }
+            }
+        }
+
+        // Usar min-heap para manter apenas os MAX_RECOMMENDATIONS melhores filmes
+        for (const auto& [filme, score] : filmeScore) {
+            if (topFilmes.size() < MAX_RECOMMENDATIONS) {
+                topFilmes.push({score, filme});
+            } else if (score > topFilmes.top().first) {
+                topFilmes.pop();
+                topFilmes.push({score, filme});
+            }
+        }
+
+        // Converter heap de filmes para vector ordenado
+        vector<pair<double, int>> filmesOrdenados;
+        filmesOrdenados.reserve(topFilmes.size());
+        
+        while (!topFilmes.empty()) {
+            filmesOrdenados.push_back(topFilmes.top());
+            topFilmes.pop();
+        }
+        
+        reverse(filmesOrdenados.begin(), filmesOrdenados.end());
+
+        // Thread-safe debug das recomendações (apenas para primeiros exploradores)
+        if (idx < 5) {
+            #pragma omp critical
+            {
+                cout << "  Top recomendações: ";
+                for (size_t i = 0; i < min((size_t)5, filmesOrdenados.size()); ++i) {
+                    cout << "F" << filmesOrdenados[i].second << "(" 
+                         << fixed << setprecision(2) << filmesOrdenados[i].first << ") ";
+                }
+                cout << endl;
+            }
+        }
+
+        // Construir string de resultado
+        stringstream ss;
+        ss << uidExplorador;
+        for (const auto& [score, filme] : filmesOrdenados) {
+            ss << " " << filme;
+        }
+        
+        resultados[idx] = ss.str();
+        
+        // Atualizar contador de forma thread-safe
+        {
+            lock_guard<mutex> lock(processadosMutex);
+            processados++;
+            if (processados % 100 == 0) {
+                cout << "Processados: " << processados << " exploradores" << endl;
+            }
+        }
+    }
+
+    // Escrever resultados no arquivo
     ofstream out(caminhoOutput);
     if(!out.is_open()){
         cerr << "Erro ao abrir o arquivo: " << caminhoOutput << "\n";
         return;
     }
 
-    int processados = 0;
-    for (const auto& [uidExplorador, filmesExplorador] : exploradores){
-        double maiorSimilaridade = -1.0;
-        int usuarioMaisSimilar = -1;
-
-        // Encontrar usuário mais similar
-        for(const auto& [uid, filmes] : perfis){
-            if (uid == uidExplorador) continue; // Evita auto-comparação
-            
-            double sim = jaccard(filmesExplorador, filmes);
-            if(sim > maiorSimilaridade){
-                maiorSimilaridade = sim;
-                usuarioMaisSimilar = uid;
-            }
-        }
-
-        // Gerar recomendações
-        unordered_set<int> recomendacoes;
-        if (usuarioMaisSimilar != -1 && perfis.count(usuarioMaisSimilar)) {
-            for(int filme : perfis[usuarioMaisSimilar]){
-                if(!filmesExplorador.count(filme)) {
-                    recomendacoes.insert(filme);
-                }
-            }
-        }
-
-        // Escrever resultado
-        out << uidExplorador;
-        for (int filme : recomendacoes) {
-            out << " " << filme;
-        }
-        out << "\n";
-        
-        processados++;
-        if (processados % 100 == 0) {
-            cout << "Processados: " << processados << " exploradores" << endl;
-        }
+    for (const string& resultado : resultados) {
+        out << resultado << "\n";
     }
 
     out.close();
