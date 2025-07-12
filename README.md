@@ -276,8 +276,10 @@ for (const string& tempFileName : arquivosTemp) {
 
 
 ## ANÁLISES E CONCLUSÕES
+### RESULTADOS
+### ANÁLISE DE DESEMPENHO
 
-  
+### AMBIENTE DE TESTES
 ## COMPILAÇÃO E EXECUÇÃO
 </hr>
 A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o procedimento de compilação e execução. Para tanto, temos as seguintes diretrizes de execução:
