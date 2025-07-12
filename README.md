@@ -31,7 +31,7 @@ Entre as etapas principais estão:
 
 ---
 
-#### 🛠️ REGRAS DE IMPLEMENTAÇÃO
+### 🛠️ REGRAS DE IMPLEMENTAÇÃO
 
 O professor definiu algumas **regras obrigatórias** que devem ser seguidas na implementação:
 
@@ -64,12 +64,31 @@ O professor definiu algumas **regras obrigatórias** que devem ser seguidas na i
 
 ---
 
-# LÓGICA
+# 🧪 METODOLOGIA
+
+Nesta seção, apresentamos a metodologia adotada no desenvolvimento do projeto, detalhando as etapas de pré-processamento dos dados e os algoritmos de recomendação utilizados. Discutimos os critérios que motivaram essas escolhas, bem como as alterações realizadas ao longo do processo, que impactaram diretamente o desempenho e influenciaram na decisão final.
+
+### VISÃO GERAL
+
+**O projeto é estruturado em três etapas principais que determinam seu desempenho:**
+
+1. **Pré-processamento de dados**:  
+   Processamento inicial do arquivo `ratings.csv` do MovieLens para construção de uma base de dados consistente, aplicando filtros de qualidade e removendo inconsistências.
+
+2. **Cálculo de similaridades**:  
+   Implementação do algoritmo de recomendação baseado na Similaridade de Jaccard, responsável por analisar padrões de avaliação e identificar relações entre usuários e filmes.
+
+3. **Geração de recomendações**:  
+   Produção das recomendações personalizadas com base nas similaridades calculadas, formatadas conforme os requisitos de saída do projeto.
+
+### 1 - PRÉ-PROCESSAMENTO
+
+
+
 
 # CONCLUSÃO
 
   
-
 # COMPILAÇÃO E EXECUÇÃO
 </hr>
 A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o procedimento de compilação e execução. Para tanto, temos as seguintes diretrizes de execução:
