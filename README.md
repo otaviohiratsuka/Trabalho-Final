@@ -298,6 +298,16 @@ Os resultados médios obtidos são os seguintes:
 ### ANÁLISE DE DESEMPENHO
 
 ### AMBIENTE DE TESTES
+<p>Os testes de desempenho e a execução do sistema foram realizados no seguinte ambiente: 
+    
+* **Sistema Operacional:** Ubuntu 24.04.1 LTS (Noble Numbat)
+* **Kernel Linux:** 6.11.0-29-generic
+* **Processador (CPU):** 11th Gen Intel(R) Core(TM) i5-11400H @ 2.70GHz (12 núcleos)
+* **Arquitetura:** x86_64
+* **Memória RAM:** 7.5 GiB
+* * **Dataset:** MovieLens 25M (utilizando um subconjunto de 102.492 usuários para os testes de performance)
+
+</p>
 ## COMPILAÇÃO E EXECUÇÃO
 </hr>
 A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o procedimento de compilação e execução. Para tanto, temos as seguintes diretrizes de execução:
