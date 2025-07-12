@@ -70,7 +70,7 @@ Nesta seção, apresentamos a metodologia adotada no desenvolvimento do projeto,
 
 ### VISÃO GERAL
 
-**O projeto é estruturado em três etapas principais que determinam seu desempenho:**
+**O projeto é estruturado em duas etapas principais que determinam seu desempenho:**
 
 1. **Pré-processamento de dados**:  
    Processamento inicial do arquivo `ratings.csv` do MovieLens para construção de uma base de dados consistente, aplicando filtros de qualidade e removendo inconsistências.
@@ -78,17 +78,60 @@ Nesta seção, apresentamos a metodologia adotada no desenvolvimento do projeto,
 2. **Cálculo de similaridades**:  
    Implementação do algoritmo de recomendação baseado na Similaridade de Jaccard, responsável por analisar padrões de avaliação e identificar relações entre usuários e filmes.
 
-3. **Geração de recomendações**:  
-   Produção das recomendações personalizadas com base nas similaridades calculadas, formatadas conforme os requisitos de saída do projeto.
 
 ### 1 - PRÉ-PROCESSAMENTO
 #### FLUXO GERAL
 
 <div align="center">
-    <img src="./img/Fluxograma.png" width="400">
+    <img src="./img/Fluxograma.png" >
 </div>
 
-### Jaccard
+
+### **ETAPAS DO PRÉ-PROCESSAMENTO**
+
+**a) LEITURA E REMOÇÃO DE DUPLICATAS**  
+A gente fez a leitura dos dados do `ratings.csv` usando `mmap` - essa opção é muito mais rápida que `fstream` porque mapeia o arquivo direto na memória e acessa com ponteiros, ficando até 10x mais rápido. Depois fizemos um parsing manual pra pegar só os dados importantes e transformar em objetos `Avaliacao` (tipo `(1, 122, 3.5)`).  
+
+A remoção de duplicatas antes usava `unordered_set`, mas dava muito overhead por causa das colisões do hash. Quando mudamos pra `sort + unique`, melhorou 10x porque evita as colisões e aproveita melhor o cache da CPU.
+
+**b) FILTRAGEM**  
+No `ler.cpp` contamos quantas vezes cada usuário e filme aparecia usando `unordered_map` - a gente escolheu isso porque a busca é O(1) e a pré-alocação (`reserve()`) evita redimensionamentos. Depois filtramos só os usuários com 50+ avaliações e filmes avaliados por 50+ pessoas, usando `unordered_set` aqui pra consulta rápida.
+
+**c) AGRUPAMENTO**  
+Essa parte pega as avaliações filtradas e junta tudo por usuário. Usamos `unordered_map` de novo porque inserir e buscar é O(1), então fica eficiente. No final, cada usuário vira uma linha com todos seus filmes e notas, tipo:  
+`123 456:4.0 789:3.5`  
+
+**d) ESCRITA PARALELIZADA**  
+Essa foi a única parte que paralelizamos, porque a escrita em disco é o gargalo. Pensamos em usar OpenMP, mas como tem dependência entre os chunks, optamos por `fork()` - que é um paralelismo "manual".  
+
+*Detalhe importante*: O formato do arquivo (`usuario_id filme:nota`) tem que ser exatamente como o professor pediu, senão o algoritmo de recomendação não funciona depois. A parte do fork ficou meio complicada porque precisa dividir os dados em pedaços iguais e juntar depois, mas valeu a pena pelo ganho de velocidade.
+
+**e) FUNÇÃO PREPROCESSAR - O COORDENADOR DO PROCESSO**  
+
+Essa função é o "cérebro" que organiza todo o pré-processamento. Ela faz um passo a passo bem definido:  
+
+1. **Preparação**:  
+   Cria dois `unordered_map` (um pra usuários, outro pra filmes) e já faz uma pré-alocação inteligente de memória baseada no `maxLinhas`. Isso evita que o programa fique realocando memória toda hora e deixa tudo mais rápido.
+
+2. **Leitura e Filtragem Inicial**:  
+   Chama a função `lerAvaliacoes` que a gente já explicou - ela lê o CSV, remove duplicatas e já vai contando quantas vezes cada usuário e filme aparecem.  
+
+3. **Filtragem Final**:  
+   Usa `filtrarPorContagemMinima` pra pegar só os usuários que avaliaram 50+ filmes e os filmes que foram avaliados por 50+ pessoas. Aqui a gente usa `unordered_set` pra conseguir verificar rapidamente se um usuário ou filme é válido.
+
+4. **Agrupamento e Escrita**:  
+   Junta tudo com `agruparAvaliacoesPorUsuario` (que transforma as avaliações no formato usuário → lista de filmes) e finalmente escreve no arquivo `input.dat` usando a escrita paralelizada com `fork()`.
+
+*Por que é importante*:  
+- Ela garante que todas as etapas acontecem na ordem certa  
+- Controla o fluxo de dados entre as funções  
+- Mostra um resumo no final (quantos usuários foram processados)  
+- A pré-alocação de memória aqui evita gargalos nas etapas seguintes  
+
+*Observação*: O parâmetro `maxLinhas` é útil pra testar com subsets dos dados - a gente pode rodar só nas primeiras 1000 linhas pra ver se tá tudo funcionando antes de processar o arquivo completo.
+
+
+### 2 - JACCARD
 O índice de Jaccard mede a similaridade entre dois conjuntos. A fórmula é:
 
 $$
