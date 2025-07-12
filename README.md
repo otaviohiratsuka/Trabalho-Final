@@ -64,7 +64,7 @@ O professor definiu algumas **regras obrigatórias** que devem ser seguidas na i
 
 ---
 
-# 🧪 METODOLOGIA
+## 🧪 METODOLOGIA
 
 Nesta seção, apresentamos a metodologia adotada no desenvolvimento do projeto, detalhando as etapas de pré-processamento dos dados e os algoritmos de recomendação utilizados. Discutimos os critérios que motivaram essas escolhas, bem como as alterações realizadas ao longo do processo, que impactaram diretamente o desempenho e influenciaram na decisão final.
 
@@ -86,10 +86,10 @@ Nesta seção, apresentamos a metodologia adotada no desenvolvimento do projeto,
 
 
 
-# CONCLUSÃO
+## ANÁLISES E CONCLUSÕES
 
   
-# COMPILAÇÃO E EXECUÇÃO
+## COMPILAÇÃO E EXECUÇÃO
 </hr>
 A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o procedimento de compilação e execução. Para tanto, temos as seguintes diretrizes de execução:
 
@@ -99,7 +99,7 @@ A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o proce
 |  `make`              	 | Compila o código-fonte conforme as regras definidas no Makefile | 
 |  `make run`            | Executa a compilação do programa utilizando o gcc, e o resultado vai para a pasta build, além de em seguida executar o programa da pasta build após a realização da compilação |
 
-# AUTORES
+## AUTORES
 
 Esse trabalho foi realizado pelos seguintes integrantes.
 
