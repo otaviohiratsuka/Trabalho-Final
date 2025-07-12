@@ -1,5 +1,6 @@
 #include "preprocess/agrupar.hpp"
-
+#include <sstream>  
+#include <omp.h>
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
@@ -39,20 +40,35 @@ unordered_map<int, vector<pair<int,float>>> agruparAvaliacoesPorUsuario(
     return agrupado;
 }
 
-void escreverInputDat(
-    const string& caminhoSaida,
-    const unordered_map<int, vector<pair<int,float>>>& dadosAgrupados
-) {
-    ofstream saida(caminhoSaida);
-    if (!saida.is_open()) {
-        cerr << "Erro ao criar arquivo: " << caminhoSaida << "\n";
-        return;
-    }
+void escreverInputDat(const string& caminhoSaida, const unordered_map<int, vector<pair<int, float>>>& dadosAgrupados) {
+    // Corrigindo o tipo do vetor de ponteiros
+    vector<const pair<const int, vector<pair<int, float>>>*> ptrs;
+    ptrs.reserve(dadosAgrupados.size());
+    
     for (const auto& par : dadosAgrupados) {
-        saida << par.first;
-        for (const auto& item : par.second)
-            saida << " " << item.first << ":" << item.second;
-        saida << "\n";
+        ptrs.push_back(&par);  // Agora o tipo está correto
     }
-    saida.close();
+
+    #pragma omp parallel for
+    for (size_t i = 0; i < ptrs.size(); i++) {
+        std::stringstream buffer;  // Tipo completo (graças ao #include <sstream>)
+        const auto& par = *ptrs[i];
+        buffer << par.first;
+        for (const auto& item : par.second) {
+            buffer << " " << item.first << ":" << item.second;
+        }
+        buffer << "\n";
+
+        // Escreve em arquivo temporário por thread
+        ofstream saida(caminhoSaida + ".tmp_" + to_string(omp_get_thread_num()), ios::app);
+        saida << buffer.str();
+    }
+
+    // Merge dos arquivos temporários (serial)
+    ofstream saidaFinal(caminhoSaida);
+    for (int i = 0; i < omp_get_max_threads(); i++) {
+        ifstream tmp(caminhoSaida + ".tmp_" + to_string(i));
+        saidaFinal << tmp.rdbuf();
+        remove((caminhoSaida + ".tmp_" + to_string(i)).c_str());
+    }
 }
