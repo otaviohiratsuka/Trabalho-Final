@@ -207,7 +207,7 @@ J(A, B) = 2 / 4 = 0.5
 
  **a)Leitura de Perfis**
    
-Como o começo do processo do algoritmo foi feita uma função [lerPerfis(const string& caminho)](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L21-L58). Que tem o objetivo de ler um arquivo de perfis de usuários, onde cada linha representa os filmes que um usuários assistiu, e transformar em um `unordered_map<int, vector<int>>`.
+Como o começo do processo do algoritmo foi feita uma função [lerPerfis(const string& caminho)](https://github.com/otaviohiratsuka/Trabalho-Final/blob/bc3c98c0894718d50e1f9653d5e06b386fa5c1a6/src/jaccard/LeitorPerfis.cpp#L7-L44). Que tem o objetivo de ler um arquivo de perfis de usuários, onde cada linha representa os filmes que um usuários assistiu, e transformar em um `unordered_map<int, vector<int>>`.
    * Entrada -> `caminho`: nome do arquivo (ex: ratings.csv).
    * Saída -> Um `Perfil`, que é um alias para:
      ```
@@ -298,7 +298,7 @@ Nessa mesma função também usamos a filtragem pro similaridade mínima (`if (s
 
 **d) Recomendação usando Jaccard**
 
-No [recomendarJaccard()](https://github.com/otaviohiratsuka/Trabalho-Final/blob/af82099ee590dcaf3b7018e25b30ab74b846c4e1/src/Jaccard.cpp#L189-L266), o objetivo é controlar a leitura dos arquivos, paralelizar o processo usando `fork()`, e combinar os resultados em um arquivo final.
+No [recomendarJaccard()](https://github.com/otaviohiratsuka/Trabalho-Final/blob/bc3c98c0894718d50e1f9653d5e06b386fa5c1a6/src/jaccard/Jaccard.cpp#L9-L28), o objetivo é controlar a leitura dos arquivos, paralelizar o processo usando `fork()`, e combinar os resultados em um arquivo final.
 
 * `caminhoInput`: perfis base.
 * `caminhoExplore`: perfis dos exploradores.
@@ -398,6 +398,28 @@ A escrita paralelizada divide o trabalho em **P processos**, reduzindo o tempo r
 *Resumo*: Eficiente para grandes volumes de dados (como o MovieLens 25M), com operações otimizadas para evitar gargalos.
 
 **2 - RECOMENDAÇÃO**
+
+📊 Variáveis Importantes:
+* `N` -> Total de perfis (usuários no arquivo base)
+* `E` -> Número de exploradores (usuários a recomendar)
+* `m` -> Média de filmes por usuário
+* `U` -> Igual a `N` (perfis contra os quais se compara)
+* `K` -> Quantidade de vizinhos mais similares (fixo: 10)
+* `P` -> Número de processos (paralelos com `fork()`)
+
+  - `lerPerfis`: Chamada duas vezes (para base e exploradores) = `O(N × m log m) + O(E × m log m)
+≈ O((N + E) × m log m)`
+  - `processarChunk`: `O((E × U × m) / P)`
+  - `recomendarJaccard`: `O(E)`
+ 
+**Complexidade Total de** `Jaccard.cpp`:
+
+$$
+    O((N + E) \cdot m log m + \frac{E \cdot N \cdot m }{P})
+$$
+
+Observação: **99% do tempo está no** `processarChunk`, resto se mostra mais leve
+
 ### CONCLUSÕES GERAIS
 <p>
     
