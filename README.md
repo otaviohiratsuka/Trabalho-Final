@@ -276,7 +276,25 @@ for (const string& tempFileName : arquivosTemp) {
 
 
 ## ANÁLISES E CONCLUSÕES
+<p>O desenvolvimento deste sistema de recomendação de filmes não se limitou à implementação das funcionalidades, mas também envolveu uma profunda análise comparativa das diferentes métricas de similaridade e uma avaliação rigorosa do desempenho. As decisões tomadas ao longo do projeto foram guiadas pela busca por eficiência computacional, qualidade das recomendações e robustez geral do sistema.
+
+Escolha da Métrica de Similaridade: Índice de Jaccard
+
+Conforme detalhado na seção de Metodologia, diversas métricas de similaridade foram consideradas para este projeto, incluindo a Distância Euclidiana, Similaridade do Cosseno e o Índice de Jaccard. Após extensivos testes e análises dos resultados preliminares, o Índice de Jaccard foi o escolhido para a implementação final do algoritmo de recomendação.</p>
+
 ### RESULTADOS
+<p>Para avaliar a eficiência computacional do sistema de recomendação, que processou 102.492 usuários, o algoritmo foi executado múltiplas vezes. Os tempos médios de execução, juntamente com o uso de memória, foram calculados para garantir uma análise consistente do desempenho, mitigando variações pontuais do ambiente de execução.
+
+Os resultados médios obtidos são os seguintes:
+* Tempo Médio de Pré-processamento: 5041.33 ms
+
+* Tempo Médio de Recomendação: 2858 ms
+
+* Tempo Médio Total: 7899.67 ms
+
+* Uso Médio de Memória (VmRSS): 281656 kB
+</p>
+
 ### ANÁLISE DE DESEMPENHO
 
 ### AMBIENTE DE TESTES
