@@ -85,7 +85,7 @@ Nesta seção, apresentamos a metodologia adotada no desenvolvimento do projeto,
 #### FLUXO GERAL
 
 <div align="center">
-    <img src="./img/fluxograma-preprocess.png" width="400">
+    <img src="./img/Fluxograma.png" width="400">
 </div>
 
 
