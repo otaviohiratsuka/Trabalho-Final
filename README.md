@@ -11,45 +11,66 @@ A capacidade de prever o interesse de um usuário por um determinado item — se
 
 Além de otimizar a experiência individual do usuário, as consequências de um sistema de recomendação eficaz vão além da satisfação pessoal, impactando diretamente o sucesso das plataformas digitais. Ao conectar usuários a conteúdos que realmente os engajam, esses sistemas contribuem para o aumento do tempo de permanência, a fidelização de clientes e a geração de receita. A modelagem precisa do comportamento e das preferências do usuário é, portanto, uma ferramenta vital, e deve ser integrada de forma inteligente no design de qualquer plataforma que almeje oferecer uma experiência personalizada. Essa abordagem permite a identificação de tendências de consumo e a aplicação de estratégias proativas para aprimorar a relevância das recomendações.</p>
 
-## DESCRIÇÃO DO PROJETO 
-<p>Este projeto foca no desenvolvimento de um sistema de recomendação desenhado para identificar e sugerir agrupamentos de elementos similares, baseando-se em perfis de usuários e nas características dos itens. Nosso principal objetivo é construir uma ferramenta que possa eficientemente conectar usuários a novos conteúdos de seu interesse, superando o desafio da sobrecarga de informações.
 
-O trabalho foi proposto na disciplina de Algoritmos e Estrutura de Dados I pelo professor Michel Pires, com a meta de implementar um sistema de recomendação de filmes. Para isso, diversas métricas de similaridade foram exploradas e consideradas, incluindo: Distância Euclidiana, Similaridade do Cosseno e Índice de Jaccard.
+## 🎯 OBJETIVOS
 
-Ao longo do desenvolvimento, focamos em entregar um algoritmo que apresentasse:
+O trabalho final da disciplina de Algoritmos e Estruturas de Dados I, proposto pelo professor Michel Pires, tem como objetivo a construção de um **sistema de recomendação de filmes** utilizando a base de dados **MovieLens 25M**.
 
-  <b>- [✔️] Uma boa eficiência computacional;</br></b>
-  <b>- [✔️] Qualidade dos resultados;</br></b>
-  <b>- [✔️] Organização do código;</br></b>
-  <b>- [✔️] Documentação;</br></b>
+O sistema deve ser capaz de, a partir do **perfil dos usuários e das características dos filmes avaliados**, sugerir **filmes similares** que possam ser do interesse de um determinado usuário. Para isso, é necessário realizar um **pré-processamento robusto da base de dados** e aplicar **algoritmos de recomendação baseados em similaridade**.
 
-Todo o sistema foi desenvolvido utilizando a linguagem C++, garantindo performance e controle sobre as estruturas de dados.</p>
+Entre as etapas principais estão:
 
-## OBJETIVOS 🎯
+* **Pré-processamento da base `ratings.csv`** para filtrar e organizar os dados;
+* Escolha e implementação de um **algoritmo de recomendação**, como:
 
-<div align= "justify" >
-  <p> Foi proposto pelo professor Michel Pires na disciplina de Algoritmo e Estrutura de Dados I, um trabalho no qual o objetivo é implementar um sistema de recomendação de filmes a partir de perfis de usuários e nas características dos itens. Para executar esse trabalho serão utilizadas métricas como: <b> Distância Euclidiana, Similaridade do Cosseno, Índice de Jaccard </b>. </p>
+  * Similaridade do cosseno;
+  * Distância Euclidiana;
+  * Índice de Jaccard;
+* Geração das recomendações para usuários definidos no arquivo `explore.dat`;
+* Escrita das recomendações no arquivo `output.dat` em formato exigido.
 
-  <p>Sendo assim, após a conclusão do projeto, temos aqui um algorítmo que tem: </br></p>
-  <b>- [✔️] Uma boa eficiência computacional;</br></b>
+---
+
+#### 🛠️ REGRAS DE IMPLEMENTAÇÃO
+
+O professor definiu algumas **regras obrigatórias** que devem ser seguidas na implementação:
+
+* O **arquivo principal da base de dados** deve ser `ratings.csv`, do conjunto **MovieLens 25M**;
+
+* O sistema deve considerar apenas:
+
+  * Usuários com **pelo menos 50 avaliações distintas**;
+  * Filmes avaliados por **pelo menos 50 usuários diferentes**;
+
+* Avaliações duplicadas ou inconsistentes devem ser removidas;
+
+* O arquivo `input.dat` deve ser gerado com o seguinte formato:
+
+  ```
+  usuario_id item_id1:nota1 item_id2:nota2 item_id3:nota3 ...
+  ```
+
+* Arquivos devem seguir o seguinte padrão:
+
+| Arquivo       | Local       | Formato       | Descrição                                           |
+| ------------- | ----------- | ------------- | --------------------------------------------------- |
+| `input.dat`   | `datasets/` | Texto (UTF-8) | Base processada de avaliações por usuário           |
+| `explore.dat` | `datasets/` | Texto (UTF-8) | Lista de usuários para os quais gerar recomendações |
+| `output.dat`  | `outcome/`  | Texto (UTF-8) | Saída com as recomendações para cada usuário        |
+
+
+* A compilação deve ser feita usando um `Makefile` com as regras `make`, `make run` e `make clean`;
+* O sistema deve compilar e executar corretamente no **Ubuntu 24.04 LTS com `g++ 13+`**;
+
+---
+
+# LÓGICA
+
+# CONCLUSÃO
+
   
-  <b>- [✔️] Qualidade dos resultados;</br></b>
-  
-  <b>- [✔️] Organização do código;</br></b>
-  
-  <b>- [✔️] Documentação;</br></b>
 
-  </br><p> A linguagem utilizada no projeto será C++.</p>
-
-  # INTRODUÇÃO
-
-  # LÓGICA
-
-  # CONCLUSÃO
-
-  
-
-  # COMPILAÇÃO E EXECUÇÃO
+# COMPILAÇÃO E EXECUÇÃO
 </hr>
 A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o procedimento de compilação e execução. Para tanto, temos as seguintes diretrizes de execução:
 
