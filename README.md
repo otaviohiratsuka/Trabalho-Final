@@ -278,7 +278,7 @@ for (const string& tempFileName : arquivosTemp) {
 ## ANÁLISES E CONCLUSÕES
 <p>O desenvolvimento deste sistema de recomendação de filmes não se limitou à implementação das funcionalidades, mas também envolveu uma profunda análise comparativa das diferentes métricas de similaridade e uma avaliação rigorosa do desempenho. As decisões tomadas ao longo do projeto foram guiadas pela busca por eficiência computacional, qualidade das recomendações e robustez geral do sistema.
 
-Escolha da Métrica de Similaridade: Índice de Jaccard
+### Escolha da Métrica de Similaridade: Índice de Jaccard
 
 Conforme detalhado na seção de Metodologia, diversas métricas de similaridade foram consideradas para este projeto, incluindo a Distância Euclidiana, Similaridade do Cosseno e o Índice de Jaccard. Após extensivos testes e análises dos resultados preliminares, o Índice de Jaccard foi o escolhido para a implementação final do algoritmo de recomendação.</p>
 
