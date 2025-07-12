@@ -1,6 +1,6 @@
 #include "preprocess/preprocess.hpp"
 #include "recomendar/recomendar.hpp"
-#include "Jaccard.hpp"
+#include "jaccard/Jaccard.hpp"
 #include <chrono>
 #include <fstream> 
 #include <unistd.h>
