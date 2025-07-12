@@ -82,6 +82,11 @@ Nesta seção, apresentamos a metodologia adotada no desenvolvimento do projeto,
    Produção das recomendações personalizadas com base nas similaridades calculadas, formatadas conforme os requisitos de saída do projeto.
 
 ### 1 - PRÉ-PROCESSAMENTO
+#### FLUXO GERAL
+
+<div align="center">
+    <img src="./img/fluxograma-preprocess.png" width="400">
+</div>
 
 
 
