@@ -3,13 +3,13 @@
     <img src="./img/recF.png" width="400">
 </div>
 
-## INTRODUÇÃO
+## 🌟INTRODUÇÃO
 
-<p>No cenário digital atual, a vasta quantidade de informações e opções disponíveis pode ser esmagadora para os usuários. Plataformas de streaming de vídeo, lojas de e-commerce e redes sociais enfrentam o desafio de apresentar conteúdo relevante e personalizado em meio a um volume gigantesco de dados. Nesse contexto, sistemas de recomendação emergem como ferramentas indispensáveis, atuando como filtros inteligentes para guiar os usuários através de um universo de possibilidades.
+No cenário digital atual, a vasta quantidade de informações e opções disponíveis pode ser esmagadora para os usuários. Plataformas de streaming de vídeo, lojas de e-commerce e redes sociais enfrentam o desafio de apresentar conteúdo relevante e personalizado em meio a um volume gigantesco de dados. Nesse contexto, sistemas de recomendação emergem como ferramentas indispensáveis, atuando como filtros inteligentes para guiar os usuários através de um universo de possibilidades.
 
 A capacidade de prever o interesse de um usuário por um determinado item — seja um filme, um produto ou um artigo — é fundamental para aprimorar a experiência digital, aumentar o engajamento e impulsionar a descoberta de novos conteúdos. Essa previsão é influenciada por uma variedade de fatores, incluindo o histórico de consumo do usuário, suas interações com outros itens, o comportamento de usuários com gostos semelhantes e até mesmo as características intrínsecas dos próprios itens.
 
-Além de otimizar a experiência individual do usuário, as consequências de um sistema de recomendação eficaz vão além da satisfação pessoal, impactando diretamente o sucesso das plataformas digitais. Ao conectar usuários a conteúdos que realmente os engajam, esses sistemas contribuem para o aumento do tempo de permanência, a fidelização de clientes e a geração de receita. A modelagem precisa do comportamento e das preferências do usuário é, portanto, uma ferramenta vital, e deve ser integrada de forma inteligente no design de qualquer plataforma que almeje oferecer uma experiência personalizada. Essa abordagem permite a identificação de tendências de consumo e a aplicação de estratégias proativas para aprimorar a relevância das recomendações.</p>
+Além de otimizar a experiência individual do usuário, as consequências de um sistema de recomendação eficaz vão além da satisfação pessoal, impactando diretamente o sucesso das plataformas digitais. Ao conectar usuários a conteúdos que realmente os engajam, esses sistemas contribuem para o aumento do tempo de permanência, a fidelização de clientes e a geração de receita. A modelagem precisa do comportamento e das preferências do usuário é, portanto, uma ferramenta vital, e deve ser integrada de forma inteligente no design de qualquer plataforma que almeje oferecer uma experiência personalizada. Essa abordagem permite a identificação de tendências de consumo e a aplicação de estratégias proativas para aprimorar a relevância das recomendações.
 
 
 ## 🎯 OBJETIVOS
@@ -88,11 +88,9 @@ ProjetoRecomendacao/
 │   │   └── ProcessadorRecomendacoes.hpp
 │   │
 │   └── preprocess/
-│   |    ├── agrupar.hpp
-│   |    ├── ler.hpp
-│   |    └── preprocess.hpp
-|   |
-|   └── config.h
+│       ├── agrupar.hpp
+│       ├── ler.hpp
+│       └── preprocess.hpp
 │
 ├── src/
 │   ├── jaccard/
@@ -364,8 +362,8 @@ O salvamento assíncrono em arquivos temporários mostra que cada processo escre
 
 ---
 
-## 🔍 ANÁLISES E CONCLUSÕES
-<p>O desenvolvimento deste sistema de recomendação de filmes não se limitou à implementação das funcionalidades, mas também envolveu uma profunda análise comparativa das diferentes métricas de similaridade e uma avaliação rigorosa do desempenho. As decisões tomadas ao longo do projeto foram guiadas pela busca por eficiência computacional, qualidade das recomendações e robustez geral do sistema.
+## 📊 ANÁLISES E CONCLUSÕES
+O desenvolvimento deste sistema de recomendação de filmes não se limitou à implementação das funcionalidades, mas também envolveu uma profunda análise comparativa das diferentes métricas de similaridade e uma avaliação rigorosa do desempenho. As decisões tomadas ao longo do projeto foram guiadas pela busca por eficiência computacional, qualidade das recomendações e robustez geral do sistema.
 
 ### Escolha da Métrica de Similaridade: Índice de Jaccard
 
@@ -382,9 +380,9 @@ Os resultados médios obtidos são os seguintes:
 * Tempo Médio Total: 7899.67 ms
 
 * Uso Médio de Memória (VmRSS): 281656 kB
-</p>
 
-### 📊 ANÁLISE DE COMPLEXIDADE
+
+### 📈 ANÁLISE DE COMPLEXIDADE
 
 **1 - PRÉ-PROCESSAMENTO**
 
@@ -401,7 +399,7 @@ A escrita paralelizada divide o trabalho em **P processos**, reduzindo o tempo r
 
 **2 - RECOMENDAÇÃO**
 
-📊 Variáveis Importantes:
+Variáveis Importantes:
 * `N` -> Total de perfis (usuários no arquivo base)
 * `E` -> Número de exploradores (usuários a recomendar)
 * `m` -> Média de filmes por usuário
@@ -432,8 +430,7 @@ $$
 
 **Conclusão Técnica**
 
-O sistema tem custo escalável, porém o gargalo está no cálculo de similaridade Jaccard entre todos os pares de explorador × perfil.
-Mesmo com paralelismo, esse custo cresce quadraticamente com o número de usuários, e linearmente com a quantidade média de filmes (`m`).
+O sistema de recomendação desenvolvido apresenta um custo computacional escalável, mas com um gargalo principal concentrado no cálculo de similaridade Jaccard entre cada usuário explorador e todos os perfis da base. Mesmo com a implementação de paralelismo via fork(), esse custo pode crescer consideravelmente com o aumento do número de usuários (`U` e `E`) e da quantidade máxima de filmes por perfil (`m`).
 
 **Possíveis Próximas Otimizações**
 
@@ -446,7 +443,7 @@ Se quiser escalar para milhões de usuários ou usar em tempo real, considere:
 * Cálculo incremental: se os perfis mudam pouco, recompute parcialmente.
 
 
-### AMBIENTE DE TESTES
+### 🖥️ AMBIENTE DE TESTES
 <p>Os testes de desempenho e a execução do sistema foram realizados no seguinte ambiente: 
     
 * **Sistema Operacional:** Ubuntu 24.04.1 LTS (Noble Numbat)
@@ -458,7 +455,7 @@ Se quiser escalar para milhões de usuários ou usar em tempo real, considere:
 
 </p>
 
-## COMPILAÇÃO E EXECUÇÃO
+## 🚀 COMPILAÇÃO E EXECUÇÃO
 </hr>
 A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o procedimento de compilação e execução. Para tanto, temos as seguintes diretrizes de execução:
 
@@ -468,7 +465,7 @@ A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o proce
 |  `make`              	 | Compila o código-fonte conforme as regras definidas no Makefile | 
 |  `make run`            | Executa a compilação do programa utilizando o gcc, e o resultado vai para a pasta build, além de em seguida executar o programa da pasta build após a realização da compilação |
 
-## 🖊️ AUTORES
+## 👥 AUTORES
 
 Esse trabalho foi realizado pelos seguintes integrantes.
 
@@ -481,25 +478,5 @@ Esse trabalho foi realizado pelos seguintes integrantes.
 [Otávio Hiratsuka;](https://github.com/otaviohiratsuka)
 
 Alunos do curso de Engenharia da Computação no [CEFET-MG](https://www.cefetmg.br)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   
 </div>
