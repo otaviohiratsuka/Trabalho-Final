@@ -451,7 +451,7 @@ Se quiser escalar para milhões de usuários ou usar em tempo real, considere:
 * **Processador (CPU):** 11th Gen Intel(R) Core(TM) i5-11400H @ 2.70GHz (12 núcleos)
 * **Arquitetura:** x86_64
 * **Memória RAM:** 7.5 GiB
-* * **Dataset:** MovieLens 25M (utilizando um subconjunto de 102.492 usuários para os testes de performance)
+* **Dataset:** MovieLens 25M (utilizando um subconjunto de 102.492 usuários para os testes de performance)
 
 </p>
 
