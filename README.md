@@ -3,6 +3,9 @@
     <img src="./img/recF.png" width="400">
 </div>
 
+## 📚 Sumário
+
+
 ## 🌟INTRODUÇÃO
 
 No cenário digital atual, a vasta quantidade de informações e opções disponíveis pode ser esmagadora para os usuários. Plataformas de streaming de vídeo, lojas de e-commerce e redes sociais enfrentam o desafio de apresentar conteúdo relevante e personalizado em meio a um volume gigantesco de dados. Nesse contexto, sistemas de recomendação emergem como ferramentas indispensáveis, atuando como filtros inteligentes para guiar os usuários através de um universo de possibilidades.
@@ -482,5 +485,20 @@ Esse trabalho foi realizado pelos seguintes integrantes.
 [Otávio Hiratsuka;](https://github.com/otaviohiratsuka)
 
 Alunos do curso de Engenharia da Computação no [CEFET-MG](https://www.cefetmg.br)
-  
+
+
+## 📚 REFERÊNCIAS
+
+- GROUMLENS. *MovieLens 25M Dataset*. Disponível em: [https://grouplens.org/datasets/movielens/25m/](https://grouplens.org/datasets/movielens/25m/). Acesso em: 13 jul. 2025.
+
+- SCIENCEDIRECT. *Jaccard Similarity – Tópicos em Ciência da Computação*. Disponível em: [https://www-sciencedirect-com.translate.goog/topics/computer-science/jaccard-similarity](https://www-sciencedirect-com.translate.goog/topics/computer-science/jaccard-similarity?_x_tr_sl=en&_x_tr_tl=pt&_x_tr_hl=pt&_x_tr_pto=tc). Acesso em: 13 jul. 2025.
+
+- RESNICK, Paul et al. *GroupLens: An Open Architecture for Collaborative Filtering of Netnews*. In: *Proceedings of the 1994 ACM Conference on Computer Supported Cooperative Work (CSCW)*. 1994. p. 175–186. Disponível em: [https://dl.acm.org/doi/10.1145/192844.192905](https://dl.acm.org/doi/10.1145/192844.192905). Acesso em: 13 jul. 2025.
+
+- CPPREFERENCE. *std::priority_queue*. Disponível em: [https://en.cppreference.com/w/cpp/container/priority_queue](https://en.cppreference.com/w/cpp/container/priority_queue). Acesso em: 13 jul. 2025.
+
+- MAN7. *fork(2) – Linux Manual Pages*. Disponível em: [https://man7.org/linux/man-pages/man2/fork.2.html](https://man7.org/linux/man-pages/man2/fork.2.html). Acesso em: 13 jul. 2025.
+
+- MAN7. *mmap(2) – Linux Manual Pages*. Disponível em: [https://man7.org/linux/man-pages/man2/mmap.2.html](https://man7.org/linux/man-pages/man2/mmap.2.html). Acesso em: 13 jul. 2025.
+
 </div>
