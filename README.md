@@ -383,8 +383,10 @@ Os resultados médios obtidos são os seguintes:
 
 * Uso Médio de Memória (VmRSS): 281656 kB
 
+Esses resultados indicam uma boa eficiência computacional, especialmente na etapa de recomendação, que é a parte central do algoritmo. A capacidade do sistema de lidar com volumes consideráveis de dados em um tempo aceitável e com um consumo de memória gerenciável demonstra a robustez da implementação.
 
 ### 📈 ANÁLISE DE COMPLEXIDADE
+Entender a complexidade computacional é fundamental para prever como o sistema se comportará com o aumento do volume de dados e para identificar possíveis gargalos. Esta análise foca no tempo de execução e uso de memória (espaço), utilizando a notação Big O (O maiúsculo) para descrever a taxa de crescimento.
 
 **1 - PRÉ-PROCESSAMENTO**
 
