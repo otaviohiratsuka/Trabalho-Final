@@ -88,9 +88,11 @@ ProjetoRecomendacao/
 │   │   └── ProcessadorRecomendacoes.hpp
 │   │
 │   └── preprocess/
-│       ├── agrupar.hpp
-│       ├── ler.hpp
-│       └── preprocess.hpp
+│   |    ├── agrupar.hpp
+│   |    ├── ler.hpp
+│   |    └── preprocess.hpp
+|   |
+│   └── config.h
 │
 ├── src/
 │   ├── jaccard/
