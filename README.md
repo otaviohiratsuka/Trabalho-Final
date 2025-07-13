@@ -4,6 +4,23 @@
 </div>
 
 ## 📚 Sumário
+- [🌟 Introdução](#introdução)
+- [🎯 Objetivos](#-objetivos)
+- [🛠️ Regras de Implementação](#-regras-de-implementação)
+- [🗂️ Estrutura do Projeto](#-estrutura-do-projeto)
+- [🧪 Metodologia](#-metodologia)
+  - [Visão Geral](#visão-geral)
+  - [1 - Pré-processamento](#1---pré-processamento)
+  - [2 - Jaccard](#2---jaccard)
+- [📊 Análises e Conclusões](#-análises-e-conclusões)
+  - [Escolha da Métrica de Similaridade](#escolha-da-métrica-de-similaridade-índice-de-jaccard)
+  - [Resultados](#resultados)
+  - [📈 Análise de Complexidade](#-análise-de-complexidade)
+  - [✅ Conclusões Gerais](#-conclusões-gerais)
+  - [🖥️ Ambiente de Testes](#-ambiente-de-testes)
+- [🚀 Compilação e Execução](#-compilação-e-execução)
+- [👥 Autores](#-autores)
+- [📚 Referências](#-referências)
 
 
 ## 🌟INTRODUÇÃO
