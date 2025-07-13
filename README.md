@@ -6,7 +6,7 @@
 ## 📚 Sumário
 - [🌟 Introdução](#introdução)
 - [🎯 Objetivos](#-objetivos)
-- [🛠️ Regras de Implementação](#🛠️-regras-de-implementação)
+- [🛠️ Regras de Implementação](#-regras-de-implementação)
 - [🗂️ Estrutura do Projeto](#-estrutura-do-projeto)
 - [🧪 Metodologia](#-metodologia)
   - [Visão Geral](#visão-geral)
