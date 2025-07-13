@@ -479,16 +479,33 @@ Se quiser escalar para milhões de usuários ou usar em tempo real, considere:
 
 </p>
 
-## 🚀 COMPILAÇÃO E EXECUÇÃO
-</hr>
-A algorítmo disponibilizado possui um arquivo Makefile que realiza todo o procedimento de compilação e execução. Para tanto, temos as seguintes diretrizes de execução:
+Aqui está a versão ajustada com as instruções de download do dataset:
 
-| Comando                |  Função                                                                                           |                     
-| -----------------------| ------------------------------------------------------------------------------------------------- |
-|  `make clean`          | Apaga a última compilação realizada contida na pasta build                                        |
-|  `make`              	 | Compila o código-fonte conforme as regras definidas no Makefile | 
-|  `make run`            | Executa a compilação do programa utilizando o gcc, e o resultado vai para a pasta build, além de em seguida executar o programa da pasta build após a realização da compilação |
+---
 
+## 🚀 COMPILAÇÃO E EXECUÇÃO  
+
+O algoritmo possui um **Makefile** que automatiza todo o processo. Siga estes passos:  
+
+1. **Pré-requisitos**:  
+   - Baixe o arquivo `ratings.csv` do [MovieLens 25M](https://www.kaggle.com/datasets/rounakbanik/the-movies-dataset)  
+   - Coloque-o na pasta `datasets/` do projeto  
+
+2. **Comandos**:  
+
+| Comando          | Função                                                                 |  
+|------------------|-----------------------------------------------------------------------|  
+| `make clean`     | Remove arquivos da última compilação (`build/`)                       |  
+| `make`           | Compila o código-fonte com otimizações (`gcc -O3`)                    |  
+| `make run`       | Executa o programa (compila automaticamente se necessário)            |  
+
+---
+
+### Observações:  
+- O programa espera que `ratings.csv` esteja em `datasets/` para funcionar corretamente  
+- Recomendado executar `make clean` antes de nova compilação  
+
+Quer que eu adicione mais detalhes sobre o formato esperado do arquivo?
 ## 👥 AUTORES
 
 Esse trabalho foi realizado pelos seguintes integrantes.
