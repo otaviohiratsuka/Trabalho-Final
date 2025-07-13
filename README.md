@@ -417,7 +417,7 @@ Variáveis Importantes:
 **Complexidade Total de** `Jaccard.cpp`:
 
 $$
-    O((N + E) \cdot m \ \log \ m + \frac{E \cdot N \cdot m }{P})
+    O\Big((N + E) \cdot m \ \log \ m + \frac{E \cdot N \cdot m }{P}\Big)
 $$
 
 Observação: **99% do tempo está no** `processarChunk`, resto se mostra mais leve
@@ -427,7 +427,7 @@ Observação: **99% do tempo está no** `processarChunk`, resto se mostra mais l
 A complexidade Final do Sistema (pré-processamento + recomendação):
 
 $$
-O(N \ \log \ N + (N + E) \cdot m \ \log \ m + \frac{E \cdot N \cdot m}{P})
+O \Big(N \ \log \ N + (N + E) \cdot m \ \log \ m + \frac{E \cdot N \cdot m}{P}\Big)
 $$ 
 
 **Conclusão Técnica**
