@@ -249,7 +249,7 @@ A função lê cada linha e extrai o `uid` e os filmes assistidos (`filmeId: rat
         perfis[uid] = move(filmes);
     }
 ```
-É importante citar o uso de `vector<int>` ordenado ao invés do `unordered_set`, que permite Permite calcular interseção e união em tempo linear O(m + n) usando duas pontas (`i`, `j`), dentro da função `jaccard`. O `unordered_set` se mostra mais lento para interseções frequentes porque exige hashing e alocação dinâmica.
+É importante citar o uso de `vector<int>` ordenado ao invés do `unordered_set`, que permite calcular interseção e união em tempo linear O(m + n) usando duas pontas (`i`, `j`), dentro da função `jaccard`. O `unordered_set` se mostra mais lento para interseções frequentes porque exige hashing e alocação dinâmica.
 
 **b) Função Jaccard**
    
